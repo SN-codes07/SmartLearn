@@ -203,117 +203,232 @@ public class DotenvLoader {
 
     public static void configureCloudEnvironment() {
         // 1. Dynamic Port Binding for Railway / Heroku / Cloud platforms
-        String portEnv = System.getenv("PORT");
-        if (portEnv != null && !portEnv.trim().isEmpty()) {
-            System.setProperty("server.port", portEnv.trim());
-            System.setProperty("PORT", portEnv.trim());
+        String portEnv = getEnvOrProp("PORT");
+        if (portEnv != null && !portEnv.isEmpty()) {
+            System.setProperty("server.port", portEnv);
+            System.setProperty("PORT", portEnv);
         }
 
-        // 2. Railway / Standard MySQL URL Resolution (handles mysql://, mysqls://, jdbc:mysql://)
-        String dbUrl = System.getenv("MYSQL_URL");
-        if (dbUrl == null || dbUrl.trim().isEmpty()) dbUrl = System.getenv("DATABASE_URL");
-        if (dbUrl == null || dbUrl.trim().isEmpty()) dbUrl = System.getenv("MYSQL_PRIVATE_URL");
-        if (dbUrl == null || dbUrl.trim().isEmpty()) dbUrl = System.getenv("DATABASE_PRIVATE_URL");
+        String resolvedHost = null;
+        String resolvedPort = null;
+        String resolvedDatabase = null;
+        String resolvedUsername = null;
+        String resolvedPassword = null;
+        String resolvedSource = null;
+        boolean requireSsl = false;
 
-        if (dbUrl != null && !dbUrl.trim().isEmpty()) {
-            dbUrl = dbUrl.trim();
-            if (dbUrl.startsWith("jdbc:mysql://")) {
-                System.setProperty("spring.datasource.url", dbUrl);
-                System.setProperty("SPRING_DATASOURCE_URL", dbUrl);
-                System.out.println("[DotenvLoader] Configured datasource from direct jdbc:mysql URL");
-                return;
-            } else if (dbUrl.startsWith("mysql://") || dbUrl.startsWith("mysqls://")) {
-                try {
-                    int protoEnd = dbUrl.indexOf("://");
-                    String rest = dbUrl.substring(protoEnd + 3);
+        // 2. PRIORITY 1: Prefer Railway's standard individual MySQL connection variables
+        // (MYSQLHOST, MYSQLPORT, MYSQLDATABASE, MYSQLUSER, MYSQLPASSWORD) or alternatives
+        String host = getEnvOrProp("MYSQLHOST");
+        if (host == null) host = getEnvOrProp("MYSQL_HOST");
+        if (host == null) host = getEnvOrProp("DB_HOST");
 
-                    int atIdx = rest.lastIndexOf('@');
-                    String userInfo = null;
-                    String hostPortDb = rest;
-                    if (atIdx != -1) {
-                        userInfo = rest.substring(0, atIdx);
-                        hostPortDb = rest.substring(atIdx + 1);
-                    }
+        if (host != null && !host.isEmpty() && !host.equalsIgnoreCase("localhost") && !host.equals("127.0.0.1")) {
+            resolvedHost = host;
 
-                    String user = "root";
-                    String pass = "";
-                    if (userInfo != null) {
-                        int colonIdx = userInfo.indexOf(':');
+            String p = getEnvOrProp("MYSQLPORT");
+            if (p == null) p = getEnvOrProp("MYSQL_PORT");
+            if (p == null) p = getEnvOrProp("DB_PORT");
+            resolvedPort = (p != null && !p.isEmpty()) ? p : "3306";
+
+            String db = getEnvOrProp("MYSQLDATABASE");
+            if (db == null) db = getEnvOrProp("MYSQL_DATABASE");
+            if (db == null) db = getEnvOrProp("DB_NAME");
+            resolvedDatabase = (db != null && !db.isEmpty()) ? db : "learning_platform_db";
+
+            String u = getEnvOrProp("MYSQLUSER");
+            if (u == null) u = getEnvOrProp("MYSQL_USER");
+            if (u == null) u = getEnvOrProp("DB_USER");
+            resolvedUsername = (u != null && !u.isEmpty()) ? u : "root";
+
+            String pwd = getEnvOrProp("MYSQLPASSWORD");
+            if (pwd == null) pwd = getEnvOrProp("MYSQL_PASSWORD");
+            if (pwd == null) pwd = getEnvOrProp("DB_PASSWORD");
+            resolvedPassword = pwd != null ? pwd : "";
+
+            resolvedSource = "Railway / Cloud Environment Variables (MYSQLHOST, MYSQLPORT, etc.)";
+        }
+
+        // 3. PRIORITY 2: Railway / Standard MySQL Connection URL (handles mysql://, mysqls://, jdbc:mysql://)
+        if (resolvedHost == null) {
+            String dbUrl = getEnvOrProp("MYSQL_URL");
+            if (dbUrl == null) dbUrl = getEnvOrProp("DATABASE_URL");
+            if (dbUrl == null) dbUrl = getEnvOrProp("MYSQL_PUBLIC_URL");
+            if (dbUrl == null) dbUrl = getEnvOrProp("MYSQL_PRIVATE_URL");
+            if (dbUrl == null) dbUrl = getEnvOrProp("DATABASE_PUBLIC_URL");
+            if (dbUrl == null) dbUrl = getEnvOrProp("DATABASE_PRIVATE_URL");
+            if (dbUrl == null) dbUrl = getEnvOrProp("SPRING_DATASOURCE_URL");
+
+            if (dbUrl != null && !dbUrl.isEmpty()) {
+                if (dbUrl.startsWith("jdbc:mysql://")) {
+                    String rest = dbUrl.substring("jdbc:mysql://".length());
+                    int slashIdx = rest.indexOf('/');
+                    if (slashIdx != -1) {
+                        String hostPort = rest.substring(0, slashIdx);
+                        String dbAndParams = rest.substring(slashIdx + 1);
+                        int colonIdx = hostPort.lastIndexOf(':');
                         if (colonIdx != -1) {
-                            user = userInfo.substring(0, colonIdx);
-                            pass = userInfo.substring(colonIdx + 1);
+                            resolvedHost = hostPort.substring(0, colonIdx);
+                            resolvedPort = hostPort.substring(colonIdx + 1);
                         } else {
-                            user = userInfo;
+                            resolvedHost = hostPort;
+                            resolvedPort = "3306";
                         }
+                        int qIdx = dbAndParams.indexOf('?');
+                        resolvedDatabase = qIdx != -1 ? dbAndParams.substring(0, qIdx) : dbAndParams;
                     }
+                    resolvedUsername = getEnvOrProp("MYSQLUSER");
+                    if (resolvedUsername == null) resolvedUsername = getEnvOrProp("DB_USER");
+                    if (resolvedUsername == null) resolvedUsername = "root";
 
-                    int slashIdx = hostPortDb.indexOf('/');
-                    String hostPort = slashIdx != -1 ? hostPortDb.substring(0, slashIdx) : hostPortDb;
-                    String dbAndParams = slashIdx != -1 ? hostPortDb.substring(slashIdx + 1) : "learning_platform_db";
+                    resolvedPassword = getEnvOrProp("MYSQLPASSWORD");
+                    if (resolvedPassword == null) resolvedPassword = getEnvOrProp("DB_PASSWORD");
+                    if (resolvedPassword == null) resolvedPassword = "";
 
-                    String host = hostPort;
-                    String port = "3306";
-                    int colonIdx = hostPort.lastIndexOf(':');
-                    if (colonIdx != -1) {
-                        host = hostPort.substring(0, colonIdx);
-                        port = hostPort.substring(colonIdx + 1);
+                    resolvedSource = "Direct jdbc:mysql URL";
+                } else if (dbUrl.contains("://")) {
+                    try {
+                        int protoIdx = dbUrl.indexOf("://");
+                        String rest = dbUrl.substring(protoIdx + 3);
+
+                        int lastAt = rest.lastIndexOf('@');
+                        String userInfo = null;
+                        String hostPortPath = rest;
+                        if (lastAt != -1) {
+                            userInfo = rest.substring(0, lastAt);
+                            hostPortPath = rest.substring(lastAt + 1);
+                        }
+
+                        String u = "root";
+                        String pass = "";
+                        if (userInfo != null && !userInfo.isEmpty()) {
+                            int firstColon = userInfo.indexOf(':');
+                            if (firstColon != -1) {
+                                u = userInfo.substring(0, firstColon);
+                                pass = userInfo.substring(firstColon + 1);
+                            } else {
+                                u = userInfo;
+                            }
+                            try {
+                                u = java.net.URLDecoder.decode(u, StandardCharsets.UTF_8);
+                                pass = java.net.URLDecoder.decode(pass, StandardCharsets.UTF_8);
+                            } catch (Exception ignored) {}
+                        }
+
+                        int slashIdx = hostPortPath.indexOf('/');
+                        String hostPort = slashIdx != -1 ? hostPortPath.substring(0, slashIdx) : hostPortPath;
+                        String dbAndParams = slashIdx != -1 ? hostPortPath.substring(slashIdx + 1) : "learning_platform_db";
+
+                        String h = hostPort;
+                        String pt = "3306";
+                        int colonIdx = hostPort.lastIndexOf(':');
+                        if (colonIdx != -1) {
+                            h = hostPort.substring(0, colonIdx);
+                            pt = hostPort.substring(colonIdx + 1);
+                        }
+
+                        String d = dbAndParams;
+                        int qIdx = dbAndParams.indexOf('?');
+                        if (qIdx != -1) {
+                            d = dbAndParams.substring(0, qIdx);
+                        }
+                        if (d == null || d.trim().isEmpty()) {
+                            d = "learning_platform_db";
+                        }
+
+                        // Supplement or override from explicit user/password variables if set
+                        String envUser = getEnvOrProp("MYSQLUSER");
+                        if (envUser != null && !envUser.isEmpty()) u = envUser;
+                        String envPass = getEnvOrProp("MYSQLPASSWORD");
+                        if (envPass != null && !envPass.isEmpty()) pass = envPass;
+
+                        resolvedHost = h;
+                        resolvedPort = pt;
+                        resolvedDatabase = d;
+                        resolvedUsername = u;
+                        resolvedPassword = pass;
+                        resolvedSource = "Railway / Cloud URL (" + dbUrl.substring(0, protoIdx) + "://)";
+                    } catch (Exception e) {
+                        System.err.println("[DotenvLoader] Warning: Could not parse database URL: " + e.getMessage());
                     }
+                }
 
-                    String dbName = dbAndParams;
-                    int qIdx = dbAndParams.indexOf('?');
-                    if (qIdx != -1) {
-                        dbName = dbAndParams.substring(0, qIdx);
-                    }
-                    if (dbName.trim().isEmpty()) {
-                        dbName = "learning_platform_db";
-                    }
-
-                    String jdbc = "jdbc:mysql://" + host + ":" + port + "/" + dbName + "?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true";
-                    System.setProperty("spring.datasource.url", jdbc);
-                    System.setProperty("spring.datasource.username", user);
-                    System.setProperty("spring.datasource.password", pass);
-                    System.setProperty("SPRING_DATASOURCE_URL", jdbc);
-                    System.setProperty("SPRING_DATASOURCE_USERNAME", user);
-                    System.setProperty("SPRING_DATASOURCE_PASSWORD", pass);
-                    System.out.println("[DotenvLoader] Successfully resolved Railway database connection: " + host + ":" + port + "/" + dbName + " (user: " + user + ")");
-                    return;
-                } catch (Exception e) {
-                    System.err.println("[DotenvLoader] Warning: Could not parse database URL: " + e.getMessage());
+                if (dbUrl.contains("sslMode=REQUIRED") || dbUrl.contains("ssl-mode=REQUIRED")) {
+                    requireSsl = true;
                 }
             }
         }
 
-        // 3. Railway Individual Environment Variables
-        String host = System.getenv("MYSQLHOST");
-        if (host == null || host.trim().isEmpty()) host = System.getenv("MYSQL_HOST");
-        if (host == null || host.trim().isEmpty()) host = System.getenv("DB_HOST");
+        // 4. PRIORITY 3: Local / Development Fallback
+        if (resolvedHost == null) {
+            String localHost = getEnvOrProp("DB_HOST");
+            resolvedHost = (localHost != null && !localHost.isEmpty()) ? localHost : "localhost";
 
-        if (host != null && !host.trim().isEmpty()) {
-            String p = System.getenv("MYSQLPORT");
-            if (p == null || p.trim().isEmpty()) p = System.getenv("MYSQL_PORT");
-            if (p == null || p.trim().isEmpty()) p = System.getenv("DB_PORT");
-            if (p == null || p.trim().isEmpty()) p = "3306";
+            String localPort = getEnvOrProp("DB_PORT");
+            resolvedPort = (localPort != null && !localPort.isEmpty()) ? localPort : "3306";
 
-            String db = System.getenv("MYSQLDATABASE");
-            if (db == null || db.trim().isEmpty()) db = System.getenv("MYSQL_DATABASE");
-            if (db == null || db.trim().isEmpty()) db = System.getenv("DB_NAME");
-            if (db == null || db.trim().isEmpty()) db = "learning_platform_db";
+            String localDb = getEnvOrProp("DB_NAME");
+            resolvedDatabase = (localDb != null && !localDb.isEmpty()) ? localDb : "learning_platform_db";
 
-            String u = System.getenv("MYSQLUSER");
-            if (u == null || u.trim().isEmpty()) u = System.getenv("MYSQL_USER");
-            if (u == null || u.trim().isEmpty()) u = System.getenv("DB_USER");
-            if (u == null || u.trim().isEmpty()) u = "root";
+            String localUser = getEnvOrProp("DB_USER");
+            resolvedUsername = (localUser != null && !localUser.isEmpty()) ? localUser : "root";
 
-            String pwd = System.getenv("MYSQLPASSWORD");
-            if (pwd == null || pwd.trim().isEmpty()) pwd = System.getenv("MYSQL_PASSWORD");
-            if (pwd == null || pwd.trim().isEmpty()) pwd = System.getenv("DB_PASSWORD");
-            if (pwd == null) pwd = "";
+            String localPass = getEnvOrProp("DB_PASSWORD");
+            resolvedPassword = localPass != null ? localPass : "hackathon123";
 
-            String jdbc = "jdbc:mysql://" + host.trim() + ":" + p.trim() + "/" + db.trim() + "?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true";
-            System.setProperty("spring.datasource.url", jdbc);
-            System.setProperty("spring.datasource.username", u.trim());
-            System.setProperty("spring.datasource.password", pwd);
-            System.out.println("[DotenvLoader] Configured datasource from Railway env: host=" + host + ", port=" + p + ", db=" + db);
+            resolvedSource = "Localhost Default Fallback";
         }
+
+        // 5. Construct safe, fully-formed JDBC connection URL
+        String sslParam = requireSsl ? "sslMode=REQUIRED" : "useSSL=false";
+        String jdbcUrl = "jdbc:mysql://" + resolvedHost + ":" + resolvedPort + "/" + resolvedDatabase
+                + "?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&" + sslParam + "&serverTimezone=UTC";
+
+        // 6. Set Java System properties for Spring Boot DataSource
+        System.setProperty("spring.datasource.url", jdbcUrl);
+        System.setProperty("SPRING_DATASOURCE_URL", jdbcUrl);
+
+        System.setProperty("spring.datasource.username", resolvedUsername);
+        System.setProperty("SPRING_DATASOURCE_USERNAME", resolvedUsername);
+
+        System.setProperty("spring.datasource.password", resolvedPassword != null ? resolvedPassword : "");
+        System.setProperty("SPRING_DATASOURCE_PASSWORD", resolvedPassword != null ? resolvedPassword : "");
+
+        System.setProperty("spring.datasource.driver-class-name", "com.mysql.cj.jdbc.Driver");
+        System.setProperty("SPRING_DATASOURCE_DRIVER_CLASS_NAME", "com.mysql.cj.jdbc.Driver");
+
+        // 7. Safe diagnostic logging (ONLY host, port, database, username, and boolean password existence)
+        System.out.println("==================================================");
+        System.out.println("[DatabaseConfig] Database Configuration Diagnostics:");
+        System.out.println("[DatabaseConfig] Source: " + resolvedSource);
+        System.out.println("[DatabaseConfig] Host: " + resolvedHost);
+        System.out.println("[DatabaseConfig] Port: " + resolvedPort);
+        System.out.println("[DatabaseConfig] Database: " + resolvedDatabase);
+        System.out.println("[DatabaseConfig] Username: " + resolvedUsername);
+        System.out.println("[DatabaseConfig] Password configured: " + (resolvedPassword != null && !resolvedPassword.isEmpty()));
+        System.out.println("==================================================");
+    }
+
+    private static String getEnvOrProp(String name) {
+        String val = System.getenv(name);
+        if (val == null || val.trim().isEmpty()) {
+            val = System.getProperty(name);
+        }
+        if (val != null) {
+            val = stripQuotes(val.trim());
+            if (val.isEmpty()) return null;
+        }
+        return val;
+    }
+
+    private static String stripQuotes(String s) {
+        if (s == null) return null;
+        String res = s.trim();
+        if ((res.startsWith("\"") && res.endsWith("\"")) || (res.startsWith("'") && res.endsWith("'"))) {
+            if (res.length() >= 2) {
+                res = res.substring(1, res.length() - 1).trim();
+            }
+        }
+        return res;
     }
 }
