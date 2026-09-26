@@ -1,0 +1,16 @@
+# Local Environment & Secrets
+.env
+*.env
+.env.*
+*.local
+local.properties
+application-local.properties
+
+# Dependencies & Build Artifacts
+node_modules/
+dist/
+target/
+.DS_Store
+*.log
+logs/
+logs
