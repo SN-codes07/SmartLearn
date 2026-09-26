@@ -217,39 +217,69 @@ public class DotenvLoader {
 
         if (dbUrl != null && !dbUrl.trim().isEmpty()) {
             dbUrl = dbUrl.trim();
-            if (dbUrl.startsWith("mysql://") || dbUrl.startsWith("mysqls://")) {
+            if (dbUrl.startsWith("jdbc:mysql://")) {
+                System.setProperty("spring.datasource.url", dbUrl);
+                System.setProperty("SPRING_DATASOURCE_URL", dbUrl);
+                System.out.println("[DotenvLoader] Configured datasource from direct jdbc:mysql URL");
+                return;
+            } else if (dbUrl.startsWith("mysql://") || dbUrl.startsWith("mysqls://")) {
                 try {
-                    java.net.URI uri = java.net.URI.create(dbUrl.replace("mysqls://", "mysql://"));
-                    String host = uri.getHost();
-                    int p = uri.getPort() > 0 ? uri.getPort() : 3306;
-                    String path = uri.getPath();
-                    String dbName = (path != null && path.length() > 1) ? path.substring(1) : "learning_platform_db";
-                    if (dbName.contains("?")) {
-                        dbName = dbName.substring(0, dbName.indexOf('?'));
-                    }
-                    String userInfo = uri.getUserInfo();
-                    String user = null;
-                    String pass = null;
-                    if (userInfo != null && userInfo.contains(":")) {
-                        String[] parts = userInfo.split(":", 2);
-                        user = parts[0];
-                        pass = parts[1];
-                    } else if (userInfo != null) {
-                        user = userInfo;
+                    int protoEnd = dbUrl.indexOf("://");
+                    String rest = dbUrl.substring(protoEnd + 3);
+
+                    int atIdx = rest.lastIndexOf('@');
+                    String userInfo = null;
+                    String hostPortDb = rest;
+                    if (atIdx != -1) {
+                        userInfo = rest.substring(0, atIdx);
+                        hostPortDb = rest.substring(atIdx + 1);
                     }
 
-                    String jdbc = "jdbc:mysql://" + host + ":" + p + "/" + dbName + "?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true";
+                    String user = "root";
+                    String pass = "";
+                    if (userInfo != null) {
+                        int colonIdx = userInfo.indexOf(':');
+                        if (colonIdx != -1) {
+                            user = userInfo.substring(0, colonIdx);
+                            pass = userInfo.substring(colonIdx + 1);
+                        } else {
+                            user = userInfo;
+                        }
+                    }
+
+                    int slashIdx = hostPortDb.indexOf('/');
+                    String hostPort = slashIdx != -1 ? hostPortDb.substring(0, slashIdx) : hostPortDb;
+                    String dbAndParams = slashIdx != -1 ? hostPortDb.substring(slashIdx + 1) : "learning_platform_db";
+
+                    String host = hostPort;
+                    String port = "3306";
+                    int colonIdx = hostPort.lastIndexOf(':');
+                    if (colonIdx != -1) {
+                        host = hostPort.substring(0, colonIdx);
+                        port = hostPort.substring(colonIdx + 1);
+                    }
+
+                    String dbName = dbAndParams;
+                    int qIdx = dbAndParams.indexOf('?');
+                    if (qIdx != -1) {
+                        dbName = dbAndParams.substring(0, qIdx);
+                    }
+                    if (dbName.trim().isEmpty()) {
+                        dbName = "learning_platform_db";
+                    }
+
+                    String jdbc = "jdbc:mysql://" + host + ":" + port + "/" + dbName + "?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true";
                     System.setProperty("spring.datasource.url", jdbc);
-                    if (user != null) System.setProperty("spring.datasource.username", user);
-                    if (pass != null) System.setProperty("spring.datasource.password", pass);
-                    System.out.println("[DotenvLoader] Configured datasource from Railway URL: host=" + host + ", port=" + p + ", db=" + dbName);
+                    System.setProperty("spring.datasource.username", user);
+                    System.setProperty("spring.datasource.password", pass);
+                    System.setProperty("SPRING_DATASOURCE_URL", jdbc);
+                    System.setProperty("SPRING_DATASOURCE_USERNAME", user);
+                    System.setProperty("SPRING_DATASOURCE_PASSWORD", pass);
+                    System.out.println("[DotenvLoader] Successfully resolved Railway database connection: " + host + ":" + port + "/" + dbName + " (user: " + user + ")");
                     return;
                 } catch (Exception e) {
                     System.err.println("[DotenvLoader] Warning: Could not parse database URL: " + e.getMessage());
                 }
-            } else if (dbUrl.startsWith("jdbc:mysql://")) {
-                System.setProperty("spring.datasource.url", dbUrl);
-                return;
             }
         }
 
