@@ -1,0 +1,1 @@
+web: if [ -f target/learning-platform-0.0.1-SNAPSHOT.jar ]; then java -Dserver.port=$PORT -jar target/learning-platform-0.0.1-SNAPSHOT.jar; else java -Dserver.port=$PORT -jar backend/target/learning-platform-0.0.1-SNAPSHOT.jar; fi

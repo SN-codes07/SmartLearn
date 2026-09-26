@@ -33,6 +33,9 @@ public class DotenvLoader {
 
         // Determine active source description
         determineSource();
+
+        // Automatically resolve Railway dynamic PORT and MySQL database URLs/environment variables
+        configureCloudEnvironment();
         loaded = true;
     }
 
@@ -196,5 +199,91 @@ public class DotenvLoader {
         if (trimmed.equalsIgnoreCase("YOUR_GEMINI_API_KEY")) return false;
         if (trimmed.toLowerCase().startsWith("your_")) return false;
         return trimmed.length() >= 10;
+    }
+
+    public static void configureCloudEnvironment() {
+        // 1. Dynamic Port Binding for Railway / Heroku / Cloud platforms
+        String portEnv = System.getenv("PORT");
+        if (portEnv != null && !portEnv.trim().isEmpty()) {
+            System.setProperty("server.port", portEnv.trim());
+            System.setProperty("PORT", portEnv.trim());
+        }
+
+        // 2. Railway / Standard MySQL URL Resolution (handles mysql://, mysqls://, jdbc:mysql://)
+        String dbUrl = System.getenv("MYSQL_URL");
+        if (dbUrl == null || dbUrl.trim().isEmpty()) dbUrl = System.getenv("DATABASE_URL");
+        if (dbUrl == null || dbUrl.trim().isEmpty()) dbUrl = System.getenv("MYSQL_PRIVATE_URL");
+        if (dbUrl == null || dbUrl.trim().isEmpty()) dbUrl = System.getenv("DATABASE_PRIVATE_URL");
+
+        if (dbUrl != null && !dbUrl.trim().isEmpty()) {
+            dbUrl = dbUrl.trim();
+            if (dbUrl.startsWith("mysql://") || dbUrl.startsWith("mysqls://")) {
+                try {
+                    java.net.URI uri = java.net.URI.create(dbUrl.replace("mysqls://", "mysql://"));
+                    String host = uri.getHost();
+                    int p = uri.getPort() > 0 ? uri.getPort() : 3306;
+                    String path = uri.getPath();
+                    String dbName = (path != null && path.length() > 1) ? path.substring(1) : "learning_platform_db";
+                    if (dbName.contains("?")) {
+                        dbName = dbName.substring(0, dbName.indexOf('?'));
+                    }
+                    String userInfo = uri.getUserInfo();
+                    String user = null;
+                    String pass = null;
+                    if (userInfo != null && userInfo.contains(":")) {
+                        String[] parts = userInfo.split(":", 2);
+                        user = parts[0];
+                        pass = parts[1];
+                    } else if (userInfo != null) {
+                        user = userInfo;
+                    }
+
+                    String jdbc = "jdbc:mysql://" + host + ":" + p + "/" + dbName + "?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true";
+                    System.setProperty("spring.datasource.url", jdbc);
+                    if (user != null) System.setProperty("spring.datasource.username", user);
+                    if (pass != null) System.setProperty("spring.datasource.password", pass);
+                    System.out.println("[DotenvLoader] Configured datasource from Railway URL: host=" + host + ", port=" + p + ", db=" + dbName);
+                    return;
+                } catch (Exception e) {
+                    System.err.println("[DotenvLoader] Warning: Could not parse database URL: " + e.getMessage());
+                }
+            } else if (dbUrl.startsWith("jdbc:mysql://")) {
+                System.setProperty("spring.datasource.url", dbUrl);
+                return;
+            }
+        }
+
+        // 3. Railway Individual Environment Variables
+        String host = System.getenv("MYSQLHOST");
+        if (host == null || host.trim().isEmpty()) host = System.getenv("MYSQL_HOST");
+        if (host == null || host.trim().isEmpty()) host = System.getenv("DB_HOST");
+
+        if (host != null && !host.trim().isEmpty()) {
+            String p = System.getenv("MYSQLPORT");
+            if (p == null || p.trim().isEmpty()) p = System.getenv("MYSQL_PORT");
+            if (p == null || p.trim().isEmpty()) p = System.getenv("DB_PORT");
+            if (p == null || p.trim().isEmpty()) p = "3306";
+
+            String db = System.getenv("MYSQLDATABASE");
+            if (db == null || db.trim().isEmpty()) db = System.getenv("MYSQL_DATABASE");
+            if (db == null || db.trim().isEmpty()) db = System.getenv("DB_NAME");
+            if (db == null || db.trim().isEmpty()) db = "learning_platform_db";
+
+            String u = System.getenv("MYSQLUSER");
+            if (u == null || u.trim().isEmpty()) u = System.getenv("MYSQL_USER");
+            if (u == null || u.trim().isEmpty()) u = System.getenv("DB_USER");
+            if (u == null || u.trim().isEmpty()) u = "root";
+
+            String pwd = System.getenv("MYSQLPASSWORD");
+            if (pwd == null || pwd.trim().isEmpty()) pwd = System.getenv("MYSQL_PASSWORD");
+            if (pwd == null || pwd.trim().isEmpty()) pwd = System.getenv("DB_PASSWORD");
+            if (pwd == null) pwd = "";
+
+            String jdbc = "jdbc:mysql://" + host.trim() + ":" + p.trim() + "/" + db.trim() + "?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true";
+            System.setProperty("spring.datasource.url", jdbc);
+            System.setProperty("spring.datasource.username", u.trim());
+            System.setProperty("spring.datasource.password", pwd);
+            System.out.println("[DotenvLoader] Configured datasource from Railway env: host=" + host + ", port=" + p + ", db=" + db);
+        }
     }
 }
