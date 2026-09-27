@@ -23,4 +23,11 @@ public class RootHealthController {
         res.put("status", "UP");
         return res;
     }
+
+    @GetMapping("/api/health")
+    public Map<String, Object> apiHealth() {
+        Map<String, Object> res = new HashMap<>();
+        res.put("status", "UP");
+        return res;
+    }
 }
