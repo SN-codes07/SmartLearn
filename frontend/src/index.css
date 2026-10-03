@@ -1,7 +1,15 @@
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+
+@variant dark (&:where([data-theme="dark"], [data-theme="dark"] *, .dark, .dark *));
+
 :root {
+  color-scheme: light;
   --primary: #4f46e5;
   --primary-hover: #4338ca;
   --primary-light: #e0e7ff;
+  --btn-text: #ffffff;
   
   --success: #10b981;
   --success-bg: #d1fae5;
@@ -16,11 +24,18 @@
   --danger-text: #991b1b;
 
   --bg-color: #f8fafc;
+  --bg-main: #f8fafc;
   --card-bg: #ffffff;
+  --card-hover-bg: #f1f5f9;
+  --surface-secondary: #f8fafc;
+  --input-bg: #ffffff;
   
   --text-main: #0f172a;
   --text-muted: #64748b;
   --border-color: #e2e8f0;
+
+  --code-bg: #0f172a;
+  --code-text: #f1f5f9;
   
   --radius-sm: 6px;
   --radius-md: 12px;
@@ -35,34 +50,54 @@
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
-:root[data-theme="dark"] {
-  --primary: #6366f1;
-  --primary-hover: #4f46e5;
-  --primary-light: rgba(99, 102, 241, 0.2);
+:root[data-theme="dark"],
+html[data-theme="dark"],
+body[data-theme="dark"],
+[data-theme="dark"],
+.dark {
+  color-scheme: dark;
   
-  --success: #10b981;
-  --success-bg: rgba(16, 185, 129, 0.15);
-  --success-text: #6ee7b7;
+  /* YouTube Accent Color (high visibility on charcoal, zero glare) */
+  --primary: #3ea6ff;
+  --primary-hover: #65b8ff;
+  --primary-light: rgba(62, 166, 255, 0.15);
+  --btn-text: #0f0f0f;
+  
+  /* YouTube Semantic Feedback */
+  --success: #2ba640;
+  --success-bg: rgba(43, 166, 64, 0.18);
+  --success-text: #7ee787;
   
   --warning: #f59e0b;
-  --warning-bg: rgba(245, 158, 11, 0.15);
+  --warning-bg: rgba(245, 158, 11, 0.18);
   --warning-text: #fcd34d;
   
-  --danger: #ef4444;
-  --danger-bg: rgba(239, 68, 68, 0.15);
-  --danger-text: #fca5a5;
+  --danger: #ff4e45;
+  --danger-bg: rgba(255, 78, 69, 0.18);
+  --danger-text: #ff8b85;
 
-  --bg-color: #0b0f19;
-  --card-bg: #151d2f;
+  /* YouTube Signature Charcoal Surfaces (comfortable on eyes, non-OLED pitch black) */
+  --bg-color: #0f0f0f;
+  --bg-main: #0f0f0f;
+  --card-bg: #212121;
+  --card-hover-bg: #282828;
+  --surface-secondary: #272727;
+  --input-bg: #121212;
   
-  --text-main: #f8fafc;
-  --text-muted: #94a3b8;
-  --border-color: #27354f;
+  /* YouTube Signature Typography: #f1f1f1 primary, #aaaaaa secondary */
+  --text-main: #f1f1f1;
+  --text-muted: #aaaaaa;
+  --border-color: #383838;
 
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.4);
-  --shadow-float: 0 20px 25px -5px rgba(0, 0, 0, 0.6), 0 10px 10px -5px rgba(0, 0, 0, 0.5);
+  /* YouTube Code & Monospace block */
+  --code-bg: #181818;
+  --code-text: #f1f1f1;
+
+  /* Soft Ambient Elevation Shadows */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.65);
+  --shadow-lg: 0 10px 24px rgba(0, 0, 0, 0.8);
+  --shadow-float: 0 20px 36px rgba(0, 0, 0, 0.95);
 }
 
 * {
@@ -71,19 +106,36 @@
   padding: 0;
 }
 
-body {
-  font-family: var(--font-sans);
+html, body, #root, .app-container {
   background-color: var(--bg-color);
   color: var(--text-main);
+  min-height: 100vh;
+}
+
+body {
+  font-family: var(--font-sans);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 input, select, textarea {
-  background-color: var(--card-bg);
+  background-color: var(--input-bg, var(--card-bg));
   color: var(--text-main);
   border: 1px solid var(--border-color);
+  font-family: inherit;
+  transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px var(--primary-light);
+}
+
+::placeholder {
+  color: var(--text-muted);
+  opacity: 0.75;
 }
 
 /* Layouts */
@@ -157,14 +209,15 @@ p { color: var(--text-muted); margin-bottom: 1rem; }
   border-radius: var(--radius-md);
   padding: 1.75rem;
   box-shadow: var(--shadow-md);
-  border: 1px solid rgba(226, 232, 240, 0.6);
+  border: 1px solid var(--border-color);
   margin-bottom: 1.5rem;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s;
 }
 
 .card-hover:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-lg);
+  background-color: var(--card-hover-bg, var(--card-bg));
 }
 
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
@@ -179,7 +232,7 @@ p { color: var(--text-muted); margin-bottom: 1rem; }
   align-items: center;
   justify-content: center;
   background-color: var(--primary);
-  color: white;
+  color: var(--btn-text, #ffffff);
   padding: 0.6rem 1.25rem;
   border-radius: var(--radius-md);
   text-decoration: none;
@@ -196,13 +249,17 @@ p { color: var(--text-muted); margin-bottom: 1rem; }
 .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 
 .btn-secondary {
-  background-color: white;
+  background-color: var(--card-bg);
   color: var(--text-main);
   border: 1px solid var(--border-color);
 }
-.btn-secondary:hover { background-color: var(--bg-color); border-color: #cbd5e1; }
+.btn-secondary:hover { 
+  background-color: var(--card-hover-bg, var(--primary-light)); 
+  border-color: var(--primary);
+  color: var(--primary);
+}
 
-.btn-success { background-color: var(--success); }
+.btn-success { background-color: var(--success); color: #ffffff; }
 .btn-success:hover { background-color: #059669; }
 
 .btn-outline {
@@ -254,15 +311,17 @@ p { color: var(--text-muted); margin-bottom: 1rem; }
   margin-bottom: 0.75rem;
   cursor: pointer;
   transition: all 0.2s;
+  color: var(--text-main);
 }
 .radio-option:hover {
-  border-color: var(--primary-light);
-  background: #f1f5f9;
+  border-color: var(--primary);
+  background: var(--card-hover-bg, var(--primary-light));
 }
 .radio-option.selected {
   background: var(--primary-light);
   border-color: var(--primary);
   box-shadow: 0 0 0 1px var(--primary);
+  color: var(--text-main);
 }
 .radio-option input[type="radio"] {
   margin-right: 1rem;
@@ -286,12 +345,12 @@ p { color: var(--text-muted); margin-bottom: 1rem; }
   padding: 3rem 2rem;
   background: var(--card-bg);
   border-radius: var(--radius-md);
-  border: 1px dashed #cbd5e1;
+  border: 1px dashed var(--border-color);
   color: var(--text-muted);
 }
 .empty-state-icon {
   font-size: 3rem;
-  color: #cbd5e1;
+  color: var(--text-muted);
   margin-bottom: 1rem;
 }
 
@@ -318,8 +377,9 @@ p { color: var(--text-muted); margin-bottom: 1rem; }
   cursor: pointer;
 }
 .ai-header {
-  background: var(--primary);
-  color: white;
+  background: var(--surface-secondary, var(--card-bg));
+  color: var(--text-main);
+  border-bottom: 1px solid var(--border-color);
   padding: 1rem 1.25rem;
   display: flex;
   justify-content: space-between;
@@ -333,23 +393,23 @@ p { color: var(--text-muted); margin-bottom: 1rem; }
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  background: #f8fafc;
+  background: var(--bg-color);
 }
 .ai-msg {
-  max-width: 85%;
-  padding: 0.75rem 1rem;
+  max-width: 88%;
+  padding: 0.85rem 1rem;
   border-radius: var(--radius-md);
-  font-size: 0.95rem;
-  line-height: 1.5;
+  font-size: 0.92rem;
+  line-height: 1.6;
 }
 .ai-msg.user {
   background: var(--primary);
-  color: white;
+  color: var(--btn-text, #ffffff);
   align-self: flex-end;
   border-bottom-right-radius: 4px;
 }
 .ai-msg.bot {
-  background: white;
+  background: var(--card-bg);
   border: 1px solid var(--border-color);
   color: var(--text-main);
   align-self: flex-start;
@@ -358,7 +418,7 @@ p { color: var(--text-muted); margin-bottom: 1rem; }
 }
 .ai-input-area {
   padding: 1rem;
-  background: white;
+  background: var(--card-bg);
   border-top: 1px solid var(--border-color);
   display: flex;
   gap: 0.5rem;
@@ -366,6 +426,8 @@ p { color: var(--text-muted); margin-bottom: 1rem; }
 .ai-input-area input {
   flex: 1;
   padding: 0.75rem 1rem;
+  background: var(--input-bg, var(--bg-color));
+  color: var(--text-main);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-full);
   outline: none;
@@ -377,7 +439,7 @@ p { color: var(--text-muted); margin-bottom: 1rem; }
 }
 .ai-input-area button {
   background: var(--primary);
-  color: white;
+  color: var(--btn-text, #ffffff);
   border: none;
   width: 40px;
   height: 40px;
@@ -389,6 +451,33 @@ p { color: var(--text-muted); margin-bottom: 1rem; }
   transition: background 0.2s;
 }
 .ai-input-area button:hover { background: var(--primary-hover); }
+
+/* Code and Syntax Formatting */
+pre {
+  background: var(--code-bg);
+  color: var(--code-text);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  overflow-x: auto;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+  font-size: 0.92rem;
+  line-height: 1.6;
+  border: 1px solid var(--border-color);
+}
+code {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+  background: var(--primary-light);
+  color: var(--primary);
+  padding: 0.15rem 0.4rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.88em;
+}
+pre code {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  border-radius: 0;
+}
 
 /* Knowledge Gaps */
 .gap-tree {
@@ -420,3 +509,29 @@ p { color: var(--text-muted); margin-bottom: 1rem; }
   height: 2px;
   background: var(--border-color);
 }
+
+/* YouTube-style Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-main);
+}
+::-webkit-scrollbar-thumb {
+  background-color: var(--border-color);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--text-muted);
+}
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-color) var(--bg-main);
+}
+
+::selection {
+  background-color: rgba(62, 166, 255, 0.3);
+  color: var(--text-main);
+}
+
