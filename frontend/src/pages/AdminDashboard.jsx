@@ -2,11 +2,29 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
+import AdminCurriculumManager from '../components/AdminCurriculumManager';
+import {
+  IconUsers,
+  IconBooks,
+  IconUserPlus,
+  IconSearch,
+  IconEdit,
+  IconArrowRight,
+  IconCheck,
+  IconAlertTriangle,
+  IconX,
+  IconAlertCircle,
+  IconChartBar,
+  IconAward,
+  IconShieldLock,
+  IconFilter
+} from '@tabler/icons-react';
 
 const AdminDashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
+  const [adminTab, setAdminTab] = useState('STUDENTS'); // 'STUDENTS' | 'CURRICULUM'
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -162,16 +180,17 @@ const AdminDashboard = () => {
           right: '20px',
           backgroundColor: '#10b981',
           color: 'white',
-          padding: '0.85rem 1.25rem',
+          padding: '0.75rem 1.25rem',
           borderRadius: 'var(--radius-md)',
           boxShadow: 'var(--shadow-lg)',
           zIndex: 9999,
           fontWeight: 600,
           display: 'flex',
           alignItems: 'center',
-          gap: '0.5rem'
+          gap: '0.5rem',
+          fontSize: '0.9rem'
         }}>
-          <span>✓</span>
+          <IconCheck size={18} stroke={2.5} />
           <span>{successToast}</span>
         </div>
       )}
@@ -186,416 +205,581 @@ const AdminDashboard = () => {
         marginBottom: '2rem'
       }}>
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <h1 style={{ margin: 0, fontSize: '1.85rem', fontWeight: 800, color: 'var(--text-main)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+            <h1 style={{ margin: 0, fontSize: '1.75rem', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--text-main)' }}>
               Institutional Admin Dashboard
             </h1>
             <span style={{
-              backgroundColor: '#ef4444',
-              color: 'white',
-              fontSize: '0.75rem',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+              backgroundColor: 'rgba(239, 68, 68, 0.1)',
+              color: 'var(--danger, #ef4444)',
+              border: '1px solid rgba(239, 68, 68, 0.25)',
+              fontSize: '0.7rem',
               fontWeight: 700,
-              padding: '0.2rem 0.6rem',
-              borderRadius: '1rem'
+              padding: '0.2rem 0.55rem',
+              borderRadius: 'var(--radius-sm)',
+              letterSpacing: '0.05em',
+              fontFamily: 'var(--font-mono, monospace)'
             }}>
+              <IconShieldLock size={12} stroke={2} />
               APSIT PORTAL
             </span>
           </div>
-          <p style={{ margin: '0.35rem 0 0', color: 'var(--text-muted)', fontSize: '0.95rem' }}>
+          <p style={{ margin: '0.35rem 0 0', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
             Manage student records, inspect individual learning recovery plans, and monitor cohort mastery.
           </p>
         </div>
 
+        {adminTab === 'STUDENTS' && (
+          <button
+            onClick={() => {
+              setFormError('');
+              setIsAddModalOpen(true);
+            }}
+            className="btn btn-primary"
+            style={{
+              padding: '0.65rem 1.25rem',
+              fontWeight: 600,
+              fontSize: '0.9rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem'
+            }}
+          >
+            <IconUserPlus size={16} stroke={2} />
+            <span>Add New Student</span>
+          </button>
+        )}
+      </div>
+
+      {/* Admin Tab Switcher */}
+      <div style={{
+        display: 'flex',
+        gap: '0.5rem',
+        borderBottom: '1px solid var(--border-color)',
+        marginBottom: '2rem',
+        paddingBottom: '0.25rem',
+        overflowX: 'auto',
+        WebkitOverflowScrolling: 'touch'
+      }}>
         <button
-          onClick={() => {
-            setFormError('');
-            setIsAddModalOpen(true);
-          }}
+          onClick={() => setAdminTab('STUDENTS')}
           style={{
-            backgroundColor: 'var(--primary)',
-            color: 'white',
+            padding: '0.7rem 1.25rem',
             border: 'none',
-            padding: '0.75rem 1.4rem',
-            borderRadius: 'var(--radius-md)',
-            fontWeight: 700,
+            background: 'none',
             fontSize: '0.95rem',
+            fontWeight: adminTab === 'STUDENTS' ? 700 : 500,
             cursor: 'pointer',
+            color: adminTab === 'STUDENTS' ? 'var(--primary)' : 'var(--text-muted)',
+            borderBottom: adminTab === 'STUDENTS' ? '2px solid var(--primary)' : '2px solid transparent',
             display: 'flex',
             alignItems: 'center',
             gap: '0.5rem',
-            boxShadow: '0 4px 12px rgba(79, 70, 229, 0.3)'
+            whiteSpace: 'nowrap',
+            transition: 'all 0.15s ease'
           }}
         >
-          <span>➕</span> Add New Student
+          <IconUsers size={17} stroke={1.75} />
+          <span>Student Directory & Cohort Health ({totalStudents})</span>
+        </button>
+        <button
+          onClick={() => setAdminTab('CURRICULUM')}
+          style={{
+            padding: '0.7rem 1.25rem',
+            border: 'none',
+            background: 'none',
+            fontSize: '0.95rem',
+            fontWeight: adminTab === 'CURRICULUM' ? 700 : 500,
+            cursor: 'pointer',
+            color: adminTab === 'CURRICULUM' ? 'var(--primary)' : 'var(--text-muted)',
+            borderBottom: adminTab === 'CURRICULUM' ? '2px solid var(--primary)' : '2px solid transparent',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            whiteSpace: 'nowrap',
+            transition: 'all 0.15s ease'
+          }}
+        >
+          <IconBooks size={17} stroke={1.75} />
+          <span>University Curriculum & Question Bank (MU Rev-2019 / NEP)</span>
         </button>
       </div>
 
-      {/* High-Level Cohort Metrics */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-        gap: '1.25rem',
-        marginBottom: '2rem'
-      }}>
-        <div style={{
-          backgroundColor: 'var(--card-bg)',
-          borderRadius: 'var(--radius-lg)',
-          border: '1px solid var(--border-color)',
-          padding: '1.5rem',
-          boxShadow: 'var(--shadow-sm)'
-        }}>
-          <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>
-            Total Enrolled
-          </div>
-          <div style={{ fontSize: '2.25rem', fontWeight: 800, color: 'var(--text-main)', marginTop: '0.4rem' }}>
-            {totalStudents}
-          </div>
-          <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
-            Active student accounts
-          </div>
-        </div>
-
-        <div style={{
-          backgroundColor: 'var(--card-bg)',
-          borderRadius: 'var(--radius-lg)',
-          border: '1px solid var(--border-color)',
-          padding: '1.5rem',
-          boxShadow: 'var(--shadow-sm)'
-        }}>
-          <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>
-            Average Mastery
-          </div>
-          <div style={{ fontSize: '2.25rem', fontWeight: 800, color: avgCohortMastery >= 75 ? 'var(--success)' : 'var(--primary)', marginTop: '0.4rem' }}>
-            {avgCohortMastery}%
-          </div>
-          <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
-            Strict 75.0% threshold benchmark
-          </div>
-        </div>
-
-        <div style={{
-          backgroundColor: 'var(--card-bg)',
-          borderRadius: 'var(--radius-lg)',
-          border: '1px solid var(--border-color)',
-          padding: '1.5rem',
-          boxShadow: 'var(--shadow-sm)'
-        }}>
-          <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>
-            Mastered Cohort
-          </div>
-          <div style={{ fontSize: '2.25rem', fontWeight: 800, color: 'var(--success)', marginTop: '0.4rem' }}>
-            {masteredCohort}
-          </div>
-          <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
-            Students with ≥75% mastery
-          </div>
-        </div>
-
-        <div style={{
-          backgroundColor: 'var(--card-bg)',
-          borderRadius: 'var(--radius-lg)',
-          border: '1px solid var(--border-color)',
-          padding: '1.5rem',
-          boxShadow: 'var(--shadow-sm)'
-        }}>
-          <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>
-            Needs Recovery
-          </div>
-          <div style={{ fontSize: '2.25rem', fontWeight: 800, color: '#f59e0b', marginTop: '0.4rem' }}>
-            {needsAttentionCohort}
-          </div>
-          <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
-            Students below 75% threshold
-          </div>
-        </div>
-      </div>
-
-      {/* Student List Section */}
-      <div style={{
-        backgroundColor: 'var(--card-bg)',
-        borderRadius: 'var(--radius-lg)',
-        border: '1px solid var(--border-color)',
-        boxShadow: 'var(--shadow-sm)',
-        overflow: 'hidden'
-      }}>
-        {/* Search & Filter Toolbar */}
-        <div style={{
-          padding: '1.25rem 1.5rem',
-          borderBottom: '1px solid var(--border-color)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: '1rem'
-        }}>
-          {/* Search box */}
-          <div style={{ flex: '1 1 280px', position: 'relative' }}>
-            <input
-              type="text"
-              placeholder="Search by name, email, or Student ID..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '0.65rem 1rem 0.65rem 2.25rem',
-                borderRadius: 'var(--radius-md)',
-                border: '1px solid var(--border-color)',
-                backgroundColor: 'var(--bg-main)',
+      {adminTab === 'STUDENTS' ? (
+        <>
+          {/* High-Level Cohort Metrics */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+            gap: '1rem',
+            marginBottom: '2rem'
+          }}>
+            <div style={{
+              backgroundColor: 'var(--card-bg)',
+              borderRadius: 'var(--radius-md)',
+              border: '1px solid var(--border-color)',
+              padding: '1.25rem',
+              boxShadow: 'var(--shadow-sm)'
+            }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                fontSize: '0.75rem',
+                color: 'var(--text-muted)',
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em'
+              }}>
+                <span>Total Enrolled</span>
+                <IconUsers size={16} stroke={1.75} style={{ color: 'var(--text-muted)' }} />
+              </div>
+              <div style={{
+                fontSize: '2rem',
+                fontWeight: 800,
                 color: 'var(--text-main)',
-                fontSize: '0.9rem',
-                outline: 'none',
-                boxSizing: 'border-box'
-              }}
-            />
-            <span style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', opacity: 0.5 }}>
-              🔍
-            </span>
+                marginTop: '0.4rem',
+                fontFamily: 'var(--font-mono, monospace)',
+                letterSpacing: '-0.02em'
+              }}>
+                {totalStudents}
+              </div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
+                Active student accounts
+              </div>
+            </div>
+
+            <div style={{
+              backgroundColor: 'var(--card-bg)',
+              borderRadius: 'var(--radius-md)',
+              border: '1px solid var(--border-color)',
+              padding: '1.25rem',
+              boxShadow: 'var(--shadow-sm)'
+            }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                fontSize: '0.75rem',
+                color: 'var(--text-muted)',
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em'
+              }}>
+                <span>Average Mastery</span>
+                <IconChartBar size={16} stroke={1.75} style={{ color: avgCohortMastery >= 75 ? 'var(--success)' : 'var(--primary)' }} />
+              </div>
+              <div style={{
+                fontSize: '2rem',
+                fontWeight: 800,
+                color: avgCohortMastery >= 75 ? 'var(--success)' : 'var(--primary)',
+                marginTop: '0.4rem',
+                fontFamily: 'var(--font-mono, monospace)',
+                letterSpacing: '-0.02em'
+              }}>
+                {avgCohortMastery}%
+              </div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
+                Strict 75.0% threshold benchmark
+              </div>
+            </div>
+
+            <div style={{
+              backgroundColor: 'var(--card-bg)',
+              borderRadius: 'var(--radius-md)',
+              border: '1px solid var(--border-color)',
+              padding: '1.25rem',
+              boxShadow: 'var(--shadow-sm)'
+            }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                fontSize: '0.75rem',
+                color: 'var(--text-muted)',
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em'
+              }}>
+                <span>Mastered Cohort</span>
+                <IconAward size={16} stroke={1.75} style={{ color: 'var(--success)' }} />
+              </div>
+              <div style={{
+                fontSize: '2rem',
+                fontWeight: 800,
+                color: 'var(--success)',
+                marginTop: '0.4rem',
+                fontFamily: 'var(--font-mono, monospace)',
+                letterSpacing: '-0.02em'
+              }}>
+                {masteredCohort}
+              </div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
+                Students with ≥75% mastery
+              </div>
+            </div>
+
+            <div style={{
+              backgroundColor: 'var(--card-bg)',
+              borderRadius: 'var(--radius-md)',
+              border: '1px solid var(--border-color)',
+              padding: '1.25rem',
+              boxShadow: 'var(--shadow-sm)'
+            }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                fontSize: '0.75rem',
+                color: 'var(--text-muted)',
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em'
+              }}>
+                <span>Needs Recovery</span>
+                <IconAlertTriangle size={16} stroke={1.75} style={{ color: '#f59e0b' }} />
+              </div>
+              <div style={{
+                fontSize: '2rem',
+                fontWeight: 800,
+                color: '#f59e0b',
+                marginTop: '0.4rem',
+                fontFamily: 'var(--font-mono, monospace)',
+                letterSpacing: '-0.02em'
+              }}>
+                {needsAttentionCohort}
+              </div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
+                Students below 75% threshold
+              </div>
+            </div>
           </div>
 
-          {/* Filters */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-            <select
-              value={deptFilter}
-              onChange={(e) => setDeptFilter(e.target.value)}
-              style={{
-                padding: '0.6rem 0.8rem',
-                borderRadius: 'var(--radius-md)',
-                border: '1px solid var(--border-color)',
-                backgroundColor: 'var(--bg-main)',
-                color: 'var(--text-main)',
-                fontSize: '0.85rem'
-              }}
-            >
-              <option value="ALL">All Departments</option>
-              <option value="Computer Engineering">Computer Engineering</option>
-              <option value="Information Technology">Information Technology</option>
-              <option value="AI & Data Science">AI & Data Science</option>
-              <option value="Electronics & Telecom">Electronics & Telecom</option>
-            </select>
+          {/* Student List Section */}
+          <div style={{
+            backgroundColor: 'var(--card-bg)',
+            borderRadius: 'var(--radius-md)',
+            border: '1px solid var(--border-color)',
+            boxShadow: 'var(--shadow-sm)',
+            overflow: 'hidden'
+          }}>
+            {/* Search & Filter Toolbar */}
+            <div style={{
+              padding: '1.25rem',
+              borderBottom: '1px solid var(--border-color)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: '0.75rem'
+            }}>
+              {/* Search box */}
+              <div style={{ flex: '1 1 280px', position: 'relative' }}>
+                <input
+                  type="text"
+                  placeholder="Search by name, email, or Student ID..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '0.6rem 0.85rem 0.6rem 2.25rem',
+                    borderRadius: 'var(--radius-sm)',
+                    border: '1px solid var(--border-color)',
+                    backgroundColor: 'var(--bg-main)',
+                    color: 'var(--text-main)',
+                    fontSize: '0.85rem',
+                    outline: 'none',
+                    boxSizing: 'border-box'
+                  }}
+                />
+                <IconSearch
+                  size={15}
+                  stroke={1.75}
+                  style={{
+                    position: 'absolute',
+                    left: '0.75rem',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    color: 'var(--text-muted)',
+                    pointerEvents: 'none'
+                  }}
+                />
+              </div>
 
-            <select
-              value={yearFilter}
-              onChange={(e) => setYearFilter(e.target.value)}
-              style={{
-                padding: '0.6rem 0.8rem',
-                borderRadius: 'var(--radius-md)',
-                border: '1px solid var(--border-color)',
-                backgroundColor: 'var(--bg-main)',
-                color: 'var(--text-main)',
-                fontSize: '0.85rem'
-              }}
-            >
-              <option value="ALL">All Years</option>
-              <option value="FE">First Year (FE)</option>
-              <option value="SE">Second Year (SE)</option>
-              <option value="TE">Third Year (TE)</option>
-              <option value="BE">Final Year (BE)</option>
-            </select>
+              {/* Filters */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                <select
+                  value={deptFilter}
+                  onChange={(e) => setDeptFilter(e.target.value)}
+                  style={{
+                    padding: '0.55rem 0.75rem',
+                    borderRadius: 'var(--radius-sm)',
+                    border: '1px solid var(--border-color)',
+                    backgroundColor: 'var(--bg-main)',
+                    color: 'var(--text-main)',
+                    fontSize: '0.85rem',
+                    outline: 'none'
+                  }}
+                >
+                  <option value="ALL">All Departments</option>
+                  <option value="Computer Engineering">Computer Engineering</option>
+                  <option value="Information Technology">Information Technology</option>
+                  <option value="AI & Data Science">AI & Data Science</option>
+                  <option value="Electronics & Telecom">Electronics & Telecom</option>
+                </select>
 
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              style={{
-                padding: '0.6rem 0.8rem',
-                borderRadius: 'var(--radius-md)',
-                border: '1px solid var(--border-color)',
-                backgroundColor: 'var(--bg-main)',
-                color: 'var(--text-main)',
-                fontSize: '0.85rem'
-              }}
-            >
-              <option value="ALL">All Mastery Statuses</option>
-              <option value="MASTERED">Mastered (≥75%)</option>
-              <option value="NEEDS_ATTENTION">Needs Attention (&lt;75%)</option>
-            </select>
-          </div>
-        </div>
+                <select
+                  value={yearFilter}
+                  onChange={(e) => setYearFilter(e.target.value)}
+                  style={{
+                    padding: '0.55rem 0.75rem',
+                    borderRadius: 'var(--radius-sm)',
+                    border: '1px solid var(--border-color)',
+                    backgroundColor: 'var(--bg-main)',
+                    color: 'var(--text-main)',
+                    fontSize: '0.85rem',
+                    outline: 'none'
+                  }}
+                >
+                  <option value="ALL">All Years</option>
+                  <option value="FE">First Year (FE)</option>
+                  <option value="SE">Second Year (SE)</option>
+                  <option value="TE">Third Year (TE)</option>
+                  <option value="BE">Final Year (BE)</option>
+                </select>
 
-        {/* Students Table */}
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-            <thead>
-              <tr style={{ backgroundColor: 'var(--bg-main)', borderBottom: '1px solid var(--border-color)' }}>
-                <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-                  Student
-                </th>
-                <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-                  Branch / Year
-                </th>
-                <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-                  Mastery Level
-                </th>
-                <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-                  Identified Gaps
-                </th>
-                <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-                  Status
-                </th>
-                <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', textAlign: 'right' }}>
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan="6" style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-                    Loading student records...
-                  </td>
-                </tr>
-              ) : filteredStudents.length === 0 ? (
-                <tr>
-                  <td colSpan="6" style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-                    No students match the selected filter criteria.
-                  </td>
-                </tr>
-              ) : (
-                filteredStudents.map((s) => {
-                  const mastery = Math.round(s.overallMastery || 0);
-                  const isMastered = mastery >= 75;
-                  return (
-                    <tr
-                      key={s.id}
-                      style={{
-                        borderBottom: '1px solid var(--border-color)',
-                        transition: 'background-color 0.15s'
-                      }}
-                    >
-                      {/* Student info */}
-                      <td style={{ padding: '1rem 1.25rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                          <div style={{
-                            width: '36px',
-                            height: '36px',
-                            borderRadius: '50%',
-                            backgroundColor: 'var(--primary)',
-                            color: 'white',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontWeight: 700,
-                            fontSize: '0.9rem'
-                          }}>
-                            {s.name ? s.name.charAt(0).toUpperCase() : 'S'}
-                          </div>
-                          <div>
-                            <div style={{ fontWeight: 700, color: 'var(--text-main)', fontSize: '0.95rem' }}>
-                              {s.name}
-                            </div>
-                            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                              {s.email} • ID: <strong style={{ color: 'var(--text-main)' }}>{s.studentId || s.id}</strong>
-                            </div>
-                          </div>
-                        </div>
-                      </td>
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  style={{
+                    padding: '0.55rem 0.75rem',
+                    borderRadius: 'var(--radius-sm)',
+                    border: '1px solid var(--border-color)',
+                    backgroundColor: 'var(--bg-main)',
+                    color: 'var(--text-main)',
+                    fontSize: '0.85rem',
+                    outline: 'none'
+                  }}
+                >
+                  <option value="ALL">All Mastery Statuses</option>
+                  <option value="MASTERED">Mastered (≥75%)</option>
+                  <option value="NEEDS_ATTENTION">Needs Attention (&lt;75%)</option>
+                </select>
+              </div>
+            </div>
 
-                      {/* Branch / Year */}
-                      <td style={{ padding: '1rem 1.25rem' }}>
-                        <div style={{ fontSize: '0.9rem', color: 'var(--text-main)', fontWeight: 600 }}>
-                          {s.department || 'Computer Engineering'}
-                        </div>
-                        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                          Year: {s.academicYear || 'TE'}
-                        </div>
-                      </td>
-
-                      {/* Mastery Level */}
-                      <td style={{ padding: '1rem 1.25rem', minWidth: '160px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
-                          <span style={{ fontSize: '0.9rem', fontWeight: 700, color: isMastered ? 'var(--success)' : 'var(--text-main)' }}>
-                            {mastery}%
-                          </span>
-                          <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-                            Target: 75%
-                          </span>
-                        </div>
+            {/* Students Table */}
+            <div style={{ overflowX: 'auto', width: '100%', WebkitOverflowScrolling: 'touch' }}>
+              <table style={{ width: '100%', minWidth: '780px', borderCollapse: 'collapse', textAlign: 'left' }}>
+                <thead>
+                  <tr style={{ backgroundColor: 'var(--bg-main)', borderBottom: '1px solid var(--border-color)' }}>
+                    <th style={{ padding: '0.75rem 1.25rem', fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: 'var(--font-mono, monospace)' }}>
+                      Student
+                    </th>
+                    <th style={{ padding: '0.75rem 1.25rem', fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: 'var(--font-mono, monospace)' }}>
+                      Branch / Year
+                    </th>
+                    <th style={{ padding: '0.75rem 1.25rem', fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: 'var(--font-mono, monospace)' }}>
+                      Mastery Level
+                    </th>
+                    <th style={{ padding: '0.75rem 1.25rem', fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: 'var(--font-mono, monospace)' }}>
+                      Identified Gaps
+                    </th>
+                    <th style={{ padding: '0.75rem 1.25rem', fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: 'var(--font-mono, monospace)' }}>
+                      Status
+                    </th>
+                    <th style={{ padding: '0.75rem 1.25rem', fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: 'var(--font-mono, monospace)', textAlign: 'right' }}>
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {loading ? (
+                    <tr>
+                      <td colSpan="6" style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
                         <div style={{
-                          width: '100%',
-                          height: '6px',
-                          backgroundColor: 'var(--bg-main)',
-                          borderRadius: '3px',
-                          overflow: 'hidden'
-                        }}>
-                          <div style={{
-                            width: `${Math.min(mastery, 100)}%`,
-                            height: '100%',
-                            backgroundColor: isMastered ? 'var(--success)' : mastery > 40 ? '#f59e0b' : '#ef4444',
-                            borderRadius: '3px'
-                          }} />
-                        </div>
-                      </td>
-
-                      {/* Identified Gaps */}
-                      <td style={{ padding: '1rem 1.25rem' }}>
-                        <span style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '0.3rem',
-                          padding: '0.2rem 0.5rem',
-                          borderRadius: '1rem',
-                          fontSize: '0.8rem',
-                          fontWeight: 600,
-                          backgroundColor: s.gapsCount > 0 ? '#fef3c7' : '#ecfdf5',
-                          color: s.gapsCount > 0 ? '#b45309' : '#047857'
-                        }}>
-                          {s.gapsCount > 0 ? `⚠️ ${s.gapsCount} Gaps` : '✓ Clear'}
-                        </span>
-                      </td>
-
-                      {/* Status */}
-                      <td style={{ padding: '1rem 1.25rem' }}>
-                        <span className={`badge ${isMastered ? 'badge-success' : 'badge-danger'}`} style={{ fontSize: '0.75rem' }}>
-                          {isMastered ? 'Mastered' : 'Needs Attention'}
-                        </span>
-                      </td>
-
-                      {/* Actions */}
-                      <td style={{ padding: '1rem 1.25rem', textAlign: 'right' }}>
-                        <div style={{ display: 'inline-flex', gap: '0.5rem' }}>
-                          <button
-                            onClick={() => openEditModal(s)}
-                            title="Edit student record"
-                            style={{
-                              padding: '0.4rem 0.75rem',
-                              borderRadius: 'var(--radius-sm)',
-                              border: '1px solid var(--border-color)',
-                              backgroundColor: 'var(--bg-main)',
-                              color: 'var(--text-main)',
-                              fontSize: '0.8rem',
-                              fontWeight: 600,
-                              cursor: 'pointer'
-                            }}
-                          >
-                            ✏️ Edit
-                          </button>
-                          <Link
-                            to={`/admin/students/${s.id}`}
-                            style={{
-                              padding: '0.4rem 0.85rem',
-                              borderRadius: 'var(--radius-sm)',
-                              backgroundColor: 'var(--primary)',
-                              color: 'white',
-                              textDecoration: 'none',
-                              fontSize: '0.8rem',
-                              fontWeight: 600,
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '0.3rem'
-                            }}
-                          >
-                            <span>Inspect</span>
-                            <span>→</span>
-                          </Link>
-                        </div>
+                          width: '28px',
+                          height: '28px',
+                          border: '2px solid var(--border-color)',
+                          borderTopColor: 'var(--primary)',
+                          borderRadius: '50%',
+                          animation: 'spin 1s linear infinite',
+                          margin: '0 auto 0.75rem'
+                        }} />
+                        Loading student records...
                       </td>
                     </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+                  ) : filteredStudents.length === 0 ? (
+                    <tr>
+                      <td colSpan="6" style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                        No students match the selected filter criteria.
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredStudents.map((s) => {
+                      const mastery = Math.round(s.overallMastery || 0);
+                      const isMastered = mastery >= 75;
+                      return (
+                        <tr
+                          key={s.id}
+                          style={{
+                            borderBottom: '1px solid var(--border-color)',
+                            transition: 'background-color 0.15s ease'
+                          }}
+                        >
+                          {/* Student info */}
+                          <td style={{ padding: '0.9rem 1.25rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                              <div style={{
+                                width: '32px',
+                                height: '32px',
+                                borderRadius: 'var(--radius-sm)',
+                                backgroundColor: 'var(--primary)',
+                                color: 'white',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontWeight: 700,
+                                fontSize: '0.85rem',
+                                flexShrink: 0
+                              }}>
+                                {s.name ? s.name.charAt(0).toUpperCase() : 'S'}
+                              </div>
+                              <div>
+                                <div style={{ fontWeight: 600, color: 'var(--text-main)', fontSize: '0.9rem' }}>
+                                  {s.name}
+                                </div>
+                                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.35rem', flexWrap: 'wrap' }}>
+                                  <span>{s.email}</span>
+                                  <span>•</span>
+                                  <span>ID: <code style={{ fontFamily: 'var(--font-mono, monospace)', color: 'var(--text-main)' }}>{s.studentId || s.id}</code></span>
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+
+                          {/* Branch / Year */}
+                          <td style={{ padding: '0.9rem 1.25rem' }}>
+                            <div style={{ fontSize: '0.85rem', color: 'var(--text-main)', fontWeight: 500 }}>
+                              {s.department || 'Computer Engineering'}
+                            </div>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono, monospace)' }}>
+                              Year: {s.academicYear || 'TE'}
+                            </div>
+                          </td>
+
+                          {/* Mastery Level */}
+                          <td style={{ padding: '0.9rem 1.25rem', minWidth: '150px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
+                              <span style={{ fontSize: '0.85rem', fontWeight: 700, color: isMastered ? 'var(--success)' : 'var(--text-main)', fontFamily: 'var(--font-mono, monospace)' }}>
+                                {mastery}%
+                              </span>
+                              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono, monospace)' }}>
+                                Std: 75%
+                              </span>
+                            </div>
+                            <div style={{
+                              width: '100%',
+                              height: '5px',
+                              backgroundColor: 'var(--bg-main)',
+                              borderRadius: '3px',
+                              overflow: 'hidden'
+                            }}>
+                              <div style={{
+                                width: `${Math.min(mastery, 100)}%`,
+                                height: '100%',
+                                backgroundColor: isMastered ? 'var(--success)' : mastery > 40 ? '#f59e0b' : '#ef4444',
+                                borderRadius: '3px'
+                              }} />
+                            </div>
+                          </td>
+
+                          {/* Identified Gaps */}
+                          <td style={{ padding: '0.9rem 1.25rem' }}>
+                            <span style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '0.3rem',
+                              padding: '0.2rem 0.55rem',
+                              borderRadius: 'var(--radius-sm)',
+                              fontSize: '0.75rem',
+                              fontWeight: 600,
+                              fontFamily: 'var(--font-mono, monospace)',
+                              backgroundColor: s.gapsCount > 0 ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)',
+                              color: s.gapsCount > 0 ? '#ef4444' : 'var(--success)',
+                              border: s.gapsCount > 0 ? '1px solid rgba(239, 68, 68, 0.25)' : '1px solid rgba(16, 185, 129, 0.25)'
+                            }}>
+                              {s.gapsCount > 0 ? (
+                                <>
+                                  <IconAlertTriangle size={13} stroke={2} />
+                                  <span>{s.gapsCount} Gaps</span>
+                                </>
+                              ) : (
+                                <>
+                                  <IconCheck size={13} stroke={2.5} />
+                                  <span>Clear</span>
+                                </>
+                              )}
+                            </span>
+                          </td>
+
+                          {/* Status */}
+                          <td style={{ padding: '0.9rem 1.25rem' }}>
+                            <span className={`badge ${isMastered ? 'badge-success' : 'badge-danger'}`} style={{ fontSize: '0.75rem' }}>
+                              {isMastered ? 'Mastered' : 'Needs Attention'}
+                            </span>
+                          </td>
+
+                          {/* Actions */}
+                          <td style={{ padding: '0.9rem 1.25rem', textAlign: 'right' }}>
+                            <div style={{ display: 'inline-flex', gap: '0.4rem' }}>
+                              <button
+                                onClick={() => openEditModal(s)}
+                                title="Edit student record"
+                                className="btn btn-secondary"
+                                style={{
+                                  padding: '0.35rem 0.65rem',
+                                  fontSize: '0.8rem',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '0.3rem'
+                                }}
+                              >
+                                <IconEdit size={13} stroke={1.75} />
+                                <span>Edit</span>
+                              </button>
+                              <Link
+                                to={`/admin/students/${s.id}`}
+                                className="btn btn-primary"
+                                style={{
+                                  padding: '0.35rem 0.75rem',
+                                  fontSize: '0.8rem',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '0.3rem',
+                                  textDecoration: 'none'
+                                }}
+                              >
+                                <span>Inspect</span>
+                                <IconArrowRight size={13} stroke={2} />
+                              </Link>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
+      ) : (
+        <AdminCurriculumManager onToast={showToast} />
+      )}
 
       {/* Modal: Add Student */}
       {isAddModalOpen && (
@@ -605,7 +789,9 @@ const AdminDashboard = () => {
           left: 0,
           right: 0,
           bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          backgroundColor: 'rgba(0, 0, 0, 0.65)',
+          backdropFilter: 'blur(4px)',
+          WebkitBackdropFilter: 'blur(4px)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -618,18 +804,20 @@ const AdminDashboard = () => {
             border: '1px solid var(--border-color)',
             maxWidth: '520px',
             width: '100%',
-            padding: '2rem',
+            padding: '1.75rem',
             boxShadow: 'var(--shadow-lg)'
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-              <h2 style={{ margin: 0, fontSize: '1.35rem', fontWeight: 800, color: 'var(--text-main)' }}>
-                Enroll New Student
+              <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <IconUserPlus size={18} stroke={2} />
+                <span>Enroll New Student</span>
               </h2>
               <button
                 onClick={() => setIsAddModalOpen(false)}
-                style={{ background: 'none', border: 'none', fontSize: '1.25rem', cursor: 'pointer', color: 'var(--text-muted)' }}
+                aria-label="Close modal"
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex', padding: '0.25rem' }}
               >
-                ✕
+                <IconX size={18} stroke={1.75} />
               </button>
             </div>
 
@@ -637,12 +825,17 @@ const AdminDashboard = () => {
               <div style={{
                 padding: '0.75rem',
                 borderRadius: 'var(--radius-sm)',
-                backgroundColor: '#fee2e2',
-                color: '#b91c1c',
+                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                color: 'var(--danger, #ef4444)',
+                border: '1px solid rgba(239, 68, 68, 0.25)',
                 fontSize: '0.85rem',
-                marginBottom: '1rem'
+                marginBottom: '1rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.4rem'
               }}>
-                ⚠️ {formError}
+                <IconAlertCircle size={15} stroke={2} />
+                <span>{formError}</span>
               </div>
             )}
 
@@ -660,11 +853,12 @@ const AdminDashboard = () => {
                   style={{
                     width: '100%',
                     padding: '0.65rem 0.85rem',
-                    borderRadius: 'var(--radius-md)',
+                    borderRadius: 'var(--radius-sm)',
                     border: '1px solid var(--border-color)',
                     backgroundColor: 'var(--bg-main)',
                     color: 'var(--text-main)',
                     fontSize: '0.9rem',
+                    outline: 'none',
                     boxSizing: 'border-box'
                   }}
                 />
@@ -684,11 +878,12 @@ const AdminDashboard = () => {
                     style={{
                       width: '100%',
                       padding: '0.65rem 0.85rem',
-                      borderRadius: 'var(--radius-md)',
+                      borderRadius: 'var(--radius-sm)',
                       border: '1px solid var(--border-color)',
                       backgroundColor: 'var(--bg-main)',
                       color: 'var(--text-main)',
                       fontSize: '0.9rem',
+                      outline: 'none',
                       boxSizing: 'border-box'
                     }}
                   />
@@ -706,11 +901,12 @@ const AdminDashboard = () => {
                     style={{
                       width: '100%',
                       padding: '0.65rem 0.85rem',
-                      borderRadius: 'var(--radius-md)',
+                      borderRadius: 'var(--radius-sm)',
                       border: '1px solid var(--border-color)',
                       backgroundColor: 'var(--bg-main)',
                       color: 'var(--text-main)',
                       fontSize: '0.9rem',
+                      outline: 'none',
                       boxSizing: 'border-box'
                     }}
                   />
@@ -728,11 +924,12 @@ const AdminDashboard = () => {
                     style={{
                       width: '100%',
                       padding: '0.65rem 0.85rem',
-                      borderRadius: 'var(--radius-md)',
+                      borderRadius: 'var(--radius-sm)',
                       border: '1px solid var(--border-color)',
                       backgroundColor: 'var(--bg-main)',
                       color: 'var(--text-main)',
                       fontSize: '0.9rem',
+                      outline: 'none',
                       boxSizing: 'border-box'
                     }}
                   >
@@ -752,11 +949,12 @@ const AdminDashboard = () => {
                     style={{
                       width: '100%',
                       padding: '0.65rem 0.85rem',
-                      borderRadius: 'var(--radius-md)',
+                      borderRadius: 'var(--radius-sm)',
                       border: '1px solid var(--border-color)',
                       backgroundColor: 'var(--bg-main)',
                       color: 'var(--text-main)',
                       fontSize: '0.9rem',
+                      outline: 'none',
                       boxSizing: 'border-box'
                     }}
                   >
@@ -781,11 +979,12 @@ const AdminDashboard = () => {
                   style={{
                     width: '100%',
                     padding: '0.65rem 0.85rem',
-                    borderRadius: 'var(--radius-md)',
+                    borderRadius: 'var(--radius-sm)',
                     border: '1px solid var(--border-color)',
                     backgroundColor: 'var(--bg-main)',
                     color: 'var(--text-main)',
                     fontSize: '0.9rem',
+                    outline: 'none',
                     boxSizing: 'border-box'
                   }}
                 />
@@ -795,29 +994,19 @@ const AdminDashboard = () => {
                 <button
                   type="button"
                   onClick={() => setIsAddModalOpen(false)}
-                  style={{
-                    padding: '0.65rem 1.25rem',
-                    borderRadius: 'var(--radius-md)',
-                    border: '1px solid var(--border-color)',
-                    backgroundColor: 'var(--bg-main)',
-                    color: 'var(--text-main)',
-                    fontSize: '0.9rem',
-                    cursor: 'pointer'
-                  }}
+                  className="btn btn-secondary"
+                  style={{ padding: '0.6rem 1.25rem', fontSize: '0.85rem' }}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={formSubmitting}
+                  className="btn btn-primary"
                   style={{
-                    padding: '0.65rem 1.5rem',
-                    borderRadius: 'var(--radius-md)',
-                    backgroundColor: 'var(--primary)',
-                    color: 'white',
-                    border: 'none',
-                    fontWeight: 700,
-                    fontSize: '0.9rem',
+                    padding: '0.6rem 1.5rem',
+                    fontWeight: 600,
+                    fontSize: '0.85rem',
                     cursor: formSubmitting ? 'not-allowed' : 'pointer'
                   }}
                 >
@@ -837,7 +1026,9 @@ const AdminDashboard = () => {
           left: 0,
           right: 0,
           bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          backgroundColor: 'rgba(0, 0, 0, 0.65)',
+          backdropFilter: 'blur(4px)',
+          WebkitBackdropFilter: 'blur(4px)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -850,18 +1041,20 @@ const AdminDashboard = () => {
             border: '1px solid var(--border-color)',
             maxWidth: '500px',
             width: '100%',
-            padding: '2rem',
+            padding: '1.75rem',
             boxShadow: 'var(--shadow-lg)'
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-              <h2 style={{ margin: 0, fontSize: '1.35rem', fontWeight: 800, color: 'var(--text-main)' }}>
-                Edit Student Profile
+              <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <IconEdit size={18} stroke={1.75} />
+                <span>Edit Student Profile</span>
               </h2>
               <button
                 onClick={() => setIsEditModalOpen(false)}
-                style={{ background: 'none', border: 'none', fontSize: '1.25rem', cursor: 'pointer', color: 'var(--text-muted)' }}
+                aria-label="Close modal"
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex', padding: '0.25rem' }}
               >
-                ✕
+                <IconX size={18} stroke={1.75} />
               </button>
             </div>
 
@@ -869,12 +1062,17 @@ const AdminDashboard = () => {
               <div style={{
                 padding: '0.75rem',
                 borderRadius: 'var(--radius-sm)',
-                backgroundColor: '#fee2e2',
-                color: '#b91c1c',
+                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                color: 'var(--danger, #ef4444)',
+                border: '1px solid rgba(239, 68, 68, 0.25)',
                 fontSize: '0.85rem',
-                marginBottom: '1rem'
+                marginBottom: '1rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.4rem'
               }}>
-                ⚠️ {formError}
+                <IconAlertCircle size={15} stroke={2} />
+                <span>{formError}</span>
               </div>
             )}
 
@@ -891,11 +1089,12 @@ const AdminDashboard = () => {
                   style={{
                     width: '100%',
                     padding: '0.65rem 0.85rem',
-                    borderRadius: 'var(--radius-md)',
+                    borderRadius: 'var(--radius-sm)',
                     border: '1px solid var(--border-color)',
                     backgroundColor: 'var(--bg-main)',
                     color: 'var(--text-main)',
                     fontSize: '0.9rem',
+                    outline: 'none',
                     boxSizing: 'border-box'
                   }}
                 />
@@ -913,11 +1112,12 @@ const AdminDashboard = () => {
                   style={{
                     width: '100%',
                     padding: '0.65rem 0.85rem',
-                    borderRadius: 'var(--radius-md)',
+                    borderRadius: 'var(--radius-sm)',
                     border: '1px solid var(--border-color)',
                     backgroundColor: 'var(--bg-main)',
                     color: 'var(--text-main)',
                     fontSize: '0.9rem',
+                    outline: 'none',
                     boxSizing: 'border-box'
                   }}
                 />
@@ -934,11 +1134,12 @@ const AdminDashboard = () => {
                     style={{
                       width: '100%',
                       padding: '0.65rem 0.85rem',
-                      borderRadius: 'var(--radius-md)',
+                      borderRadius: 'var(--radius-sm)',
                       border: '1px solid var(--border-color)',
                       backgroundColor: 'var(--bg-main)',
                       color: 'var(--text-main)',
                       fontSize: '0.9rem',
+                      outline: 'none',
                       boxSizing: 'border-box'
                     }}
                   >
@@ -958,11 +1159,12 @@ const AdminDashboard = () => {
                     style={{
                       width: '100%',
                       padding: '0.65rem 0.85rem',
-                      borderRadius: 'var(--radius-md)',
+                      borderRadius: 'var(--radius-sm)',
                       border: '1px solid var(--border-color)',
                       backgroundColor: 'var(--bg-main)',
                       color: 'var(--text-main)',
                       fontSize: '0.9rem',
+                      outline: 'none',
                       boxSizing: 'border-box'
                     }}
                   >
@@ -978,29 +1180,19 @@ const AdminDashboard = () => {
                 <button
                   type="button"
                   onClick={() => setIsEditModalOpen(false)}
-                  style={{
-                    padding: '0.65rem 1.25rem',
-                    borderRadius: 'var(--radius-md)',
-                    border: '1px solid var(--border-color)',
-                    backgroundColor: 'var(--bg-main)',
-                    color: 'var(--text-main)',
-                    fontSize: '0.9rem',
-                    cursor: 'pointer'
-                  }}
+                  className="btn btn-secondary"
+                  style={{ padding: '0.6rem 1.25rem', fontSize: '0.85rem' }}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={formSubmitting}
+                  className="btn btn-primary"
                   style={{
-                    padding: '0.65rem 1.5rem',
-                    borderRadius: 'var(--radius-md)',
-                    backgroundColor: 'var(--primary)',
-                    color: 'white',
-                    border: 'none',
-                    fontWeight: 700,
-                    fontSize: '0.9rem',
+                    padding: '0.6rem 1.5rem',
+                    fontWeight: 600,
+                    fontSize: '0.85rem',
                     cursor: formSubmitting ? 'not-allowed' : 'pointer'
                   }}
                 >

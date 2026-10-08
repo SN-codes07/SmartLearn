@@ -5,6 +5,22 @@ import api from '../services/api';
 import VisualKnowledgeMap from '../components/VisualKnowledgeMap';
 import RecoveryPlansList from '../components/RecoveryPlansList';
 import DailyFeedbackCard from '../components/DailyFeedbackCard';
+import {
+  IconArrowLeft,
+  IconMail,
+  IconId,
+  IconSchool,
+  IconCalendar,
+  IconEdit,
+  IconNetwork,
+  IconTools,
+  IconSparkles,
+  IconChartBar,
+  IconCheck,
+  IconAlertTriangle,
+  IconX,
+  IconAlertCircle
+} from '@tabler/icons-react';
 
 const AdminStudentDetail = () => {
   const { id } = useParams();
@@ -80,7 +96,7 @@ const AdminStudentDetail = () => {
   if (loading) {
     return (
       <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '3rem 1rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-        <div style={{ width: '40px', height: '40px', border: '3px solid var(--border-color)', borderTopColor: 'var(--primary)', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto 1rem' }} />
+        <div style={{ width: '32px', height: '32px', border: '2px solid var(--border-color)', borderTopColor: 'var(--primary)', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto 1rem' }} />
         Loading student dossier & learning analytics...
       </div>
     );
@@ -89,10 +105,11 @@ const AdminStudentDetail = () => {
   if (!student) {
     return (
       <div style={{ maxWidth: '800px', margin: '3rem auto', textAlign: 'center' }}>
-        <h2>Student Not Found</h2>
-        <p style={{ color: 'var(--text-muted)' }}>Could not find student record with ID #{id}.</p>
-        <Link to="/admin" className="btn btn-primary" style={{ marginTop: '1rem', display: 'inline-block' }}>
-          ← Back to Admin Dashboard
+        <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-main)' }}>Student Not Found</h2>
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Could not find student record with ID #{id}.</p>
+        <Link to="/admin" className="btn btn-primary" style={{ marginTop: '1rem', display: 'inline-flex', alignItems: 'center', gap: '0.4rem', textDecoration: 'none' }}>
+          <IconArrowLeft size={16} stroke={2} />
+          <span>Back to Admin Dashboard</span>
         </Link>
       </div>
     );
@@ -116,11 +133,12 @@ const AdminStudentDetail = () => {
             gap: '0.4rem',
             color: 'var(--text-muted)',
             textDecoration: 'none',
-            fontSize: '0.9rem',
+            fontSize: '0.85rem',
             fontWeight: 600
           }}
         >
-          ← Back to All Students
+          <IconArrowLeft size={15} stroke={2} />
+          <span>Back to Student Directory</span>
         </Link>
       </div>
 
@@ -129,7 +147,7 @@ const AdminStudentDetail = () => {
         backgroundColor: 'var(--card-bg)',
         borderRadius: 'var(--radius-lg)',
         border: '1px solid var(--border-color)',
-        padding: '2rem',
+        padding: '1.75rem',
         boxShadow: 'var(--shadow-sm)',
         marginBottom: '2rem',
         display: 'flex',
@@ -138,75 +156,85 @@ const AdminStudentDetail = () => {
         flexWrap: 'wrap',
         gap: '1.5rem'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', flexWrap: 'wrap' }}>
           <div style={{
-            width: '72px',
-            height: '72px',
-            borderRadius: '50%',
+            width: '60px',
+            height: '60px',
+            borderRadius: 'var(--radius-md)',
             backgroundColor: 'var(--primary)',
             color: 'white',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontSize: '2rem',
-            fontWeight: 800
+            fontSize: '1.75rem',
+            fontWeight: 700,
+            flexShrink: 0
           }}>
             {student.name ? student.name.charAt(0).toUpperCase() : 'S'}
           </div>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.25rem' }}>
-              <h1 style={{ margin: 0, fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.35rem', flexWrap: 'wrap' }}>
+              <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--text-main)' }}>
                 {student.name}
               </h1>
-              <span className={`badge ${isMastered ? 'badge-success' : 'badge-danger'}`}>
+              <span className={`badge ${isMastered ? 'badge-success' : 'badge-danger'}`} style={{ fontSize: '0.75rem' }}>
                 {isMastered ? 'Mastered (≥75%)' : 'Needs Attention'}
               </span>
             </div>
-            <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-              <span>📧 {student.email}</span>
-              <span>🎓 ID: <strong style={{ color: 'var(--text-main)' }}>{student.studentId || student.id}</strong></span>
-              <span>🏛️ {student.department || 'Computer Engineering'}</span>
-              <span>📅 Year: {student.academicYear || 'TE'}</span>
+            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                <IconMail size={14} stroke={1.75} />
+                <span>{student.email}</span>
+              </span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                <IconId size={14} stroke={1.75} />
+                <span>ID: <code style={{ fontFamily: 'var(--font-mono, monospace)', color: 'var(--text-main)' }}>{student.studentId || student.id}</code></span>
+              </span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                <IconSchool size={14} stroke={1.75} />
+                <span>{student.department || 'Computer Engineering'}</span>
+              </span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                <IconCalendar size={14} stroke={1.75} />
+                <span>Year: <span style={{ fontFamily: 'var(--font-mono, monospace)' }}>{student.academicYear || 'TE'}</span></span>
+              </span>
             </div>
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
           <div style={{
             textAlign: 'center',
             backgroundColor: 'var(--bg-main)',
-            padding: '0.85rem 1.5rem',
+            padding: '0.75rem 1.25rem',
             borderRadius: 'var(--radius-md)',
-            border: '1px solid var(--border-color)'
+            border: '1px solid var(--border-color)',
+            minWidth: '120px'
           }}>
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>
+            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
               Overall Mastery
             </div>
-            <div style={{ fontSize: '1.85rem', fontWeight: 800, color: isMastered ? 'var(--success)' : 'var(--primary)' }}>
+            <div style={{ fontSize: '1.75rem', fontWeight: 800, color: isMastered ? 'var(--success)' : 'var(--primary)', fontFamily: 'var(--font-mono, monospace)', marginTop: '0.2rem' }}>
               {mastery}%
             </div>
-            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono, monospace)' }}>
               Standard: 75%
             </div>
           </div>
 
           <button
             onClick={() => setIsEditModalOpen(true)}
+            className="btn btn-secondary"
             style={{
-              padding: '0.65rem 1.25rem',
-              borderRadius: 'var(--radius-md)',
-              border: '1px solid var(--border-color)',
-              backgroundColor: 'var(--card-bg)',
-              color: 'var(--text-main)',
-              fontSize: '0.9rem',
-              fontWeight: 600,
-              cursor: 'pointer',
-              display: 'flex',
+              padding: '0.65rem 1rem',
+              fontSize: '0.85rem',
+              display: 'inline-flex',
               alignItems: 'center',
               gap: '0.4rem'
             }}
           >
-            ✏️ Edit Profile
+            <IconEdit size={14} stroke={1.75} />
+            <span>Edit Profile</span>
           </button>
         </div>
       </div>
@@ -214,10 +242,11 @@ const AdminStudentDetail = () => {
       {/* Tabs */}
       <div style={{
         display: 'flex',
-        gap: '0.75rem',
-        borderBottom: '2px solid var(--border-color)',
+        gap: '0.5rem',
+        borderBottom: '1px solid var(--border-color)',
         marginBottom: '2rem',
-        overflowX: 'auto'
+        overflowX: 'auto',
+        WebkitOverflowScrolling: 'touch'
       }}>
         <button
           onClick={() => setActiveTab('MAP')}
@@ -225,18 +254,20 @@ const AdminStudentDetail = () => {
             background: 'none',
             border: 'none',
             padding: '0.75rem 1.25rem',
-            fontSize: '1rem',
+            fontSize: '0.95rem',
             fontWeight: activeTab === 'MAP' ? 700 : 500,
             color: activeTab === 'MAP' ? 'var(--primary)' : 'var(--text-muted)',
-            borderBottom: activeTab === 'MAP' ? '3px solid var(--primary)' : 'none',
+            borderBottom: activeTab === 'MAP' ? '2px solid var(--primary)' : '2px solid transparent',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
             gap: '0.5rem',
-            whiteSpace: 'nowrap'
+            whiteSpace: 'nowrap',
+            transition: 'all 0.15s ease'
           }}
         >
-          <span>🗺️</span> Visual Knowledge Graph
+          <IconNetwork size={16} stroke={1.75} />
+          <span>Visual Knowledge Graph</span>
         </button>
 
         <button
@@ -245,18 +276,20 @@ const AdminStudentDetail = () => {
             background: 'none',
             border: 'none',
             padding: '0.75rem 1.25rem',
-            fontSize: '1rem',
+            fontSize: '0.95rem',
             fontWeight: activeTab === 'RECOVERY' ? 700 : 500,
             color: activeTab === 'RECOVERY' ? 'var(--primary)' : 'var(--text-muted)',
-            borderBottom: activeTab === 'RECOVERY' ? '3px solid var(--primary)' : 'none',
+            borderBottom: activeTab === 'RECOVERY' ? '2px solid var(--primary)' : '2px solid transparent',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
             gap: '0.5rem',
-            whiteSpace: 'nowrap'
+            whiteSpace: 'nowrap',
+            transition: 'all 0.15s ease'
           }}
         >
-          <span>🛠️</span> Recovery Plans ({knowledgeGaps.length})
+          <IconTools size={16} stroke={1.75} />
+          <span>Recovery Plans ({knowledgeGaps.length})</span>
         </button>
 
         <button
@@ -265,18 +298,20 @@ const AdminStudentDetail = () => {
             background: 'none',
             border: 'none',
             padding: '0.75rem 1.25rem',
-            fontSize: '1rem',
+            fontSize: '0.95rem',
             fontWeight: activeTab === 'FEEDBACK' ? 700 : 500,
             color: activeTab === 'FEEDBACK' ? 'var(--primary)' : 'var(--text-muted)',
-            borderBottom: activeTab === 'FEEDBACK' ? '3px solid var(--primary)' : 'none',
+            borderBottom: activeTab === 'FEEDBACK' ? '2px solid var(--primary)' : '2px solid transparent',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
             gap: '0.5rem',
-            whiteSpace: 'nowrap'
+            whiteSpace: 'nowrap',
+            transition: 'all 0.15s ease'
           }}
         >
-          <span>🤖</span> Daily AI Feedback
+          <IconSparkles size={16} stroke={1.75} />
+          <span>Daily AI Feedback</span>
         </button>
 
         <button
@@ -285,25 +320,27 @@ const AdminStudentDetail = () => {
             background: 'none',
             border: 'none',
             padding: '0.75rem 1.25rem',
-            fontSize: '1rem',
+            fontSize: '0.95rem',
             fontWeight: activeTab === 'OVERVIEW' ? 700 : 500,
             color: activeTab === 'OVERVIEW' ? 'var(--primary)' : 'var(--text-muted)',
-            borderBottom: activeTab === 'OVERVIEW' ? '3px solid var(--primary)' : 'none',
+            borderBottom: activeTab === 'OVERVIEW' ? '2px solid var(--primary)' : '2px solid transparent',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
             gap: '0.5rem',
-            whiteSpace: 'nowrap'
+            whiteSpace: 'nowrap',
+            transition: 'all 0.15s ease'
           }}
         >
-          <span>📊</span> Detailed Concept Breakdown
+          <IconChartBar size={16} stroke={1.75} />
+          <span>Detailed Concept Breakdown</span>
         </button>
       </div>
 
       {/* Tab Content */}
       {activeTab === 'MAP' && (
         <div>
-          <div style={{ marginBottom: '1rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+          <div style={{ marginBottom: '1rem', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
             Live Knowledge Dependency Graph rendered directly from {student.name}'s assessment attempts.
           </div>
           <VisualKnowledgeMap studentId={student.id} />
@@ -312,7 +349,7 @@ const AdminStudentDetail = () => {
 
       {activeTab === 'RECOVERY' && (
         <div>
-          <div style={{ marginBottom: '1rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+          <div style={{ marginBottom: '1rem', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
             Automated learning recovery pathways targeting {student.name}'s diagnosed prerequisite gaps.
           </div>
           <RecoveryPlansList studentId={student.id} />
@@ -326,36 +363,38 @@ const AdminStudentDetail = () => {
       )}
 
       {activeTab === 'OVERVIEW' && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.25rem' }}>
           {/* Mastered concepts */}
           <div style={{
             backgroundColor: 'var(--card-bg)',
-            borderRadius: 'var(--radius-lg)',
+            borderRadius: 'var(--radius-md)',
             border: '1px solid var(--border-color)',
             padding: '1.5rem',
             boxShadow: 'var(--shadow-sm)'
           }}>
-            <h3 style={{ margin: '0 0 1rem', fontSize: '1.1rem', color: 'var(--success)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <span>✓</span> Mastered Concepts ({masteredConcepts.length})
+            <h3 style={{ margin: '0 0 1rem', fontSize: '1rem', fontWeight: 700, color: 'var(--success)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <IconCheck size={18} stroke={2.5} />
+              <span>Mastered Concepts ({masteredConcepts.length})</span>
             </h3>
             {masteredConcepts.length === 0 ? (
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>No concepts mastered yet (≥75% required).</p>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>No concepts mastered yet (≥75% required).</p>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 {masteredConcepts.map((c, i) => (
                   <div key={i} style={{
-                    padding: '0.6rem 0.8rem',
+                    padding: '0.65rem 0.85rem',
                     borderRadius: 'var(--radius-sm)',
                     backgroundColor: 'var(--bg-main)',
+                    border: '1px solid var(--border-color)',
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center'
                   }}>
                     <div>
-                      <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-main)' }}>{c.conceptName}</div>
+                      <div style={{ fontWeight: 600, fontSize: '0.85rem', color: 'var(--text-main)' }}>{c.conceptName}</div>
                       <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{c.subjectName}</div>
                     </div>
-                    <span style={{ fontWeight: 700, color: 'var(--success)', fontSize: '0.9rem' }}>
+                    <span style={{ fontWeight: 700, color: 'var(--success)', fontSize: '0.85rem', fontFamily: 'var(--font-mono, monospace)' }}>
                       {Math.round(c.masteryScore)}%
                     </span>
                   </div>
@@ -367,33 +406,35 @@ const AdminStudentDetail = () => {
           {/* Knowledge Gaps */}
           <div style={{
             backgroundColor: 'var(--card-bg)',
-            borderRadius: 'var(--radius-lg)',
+            borderRadius: 'var(--radius-md)',
             border: '1px solid var(--border-color)',
             padding: '1.5rem',
             boxShadow: 'var(--shadow-sm)'
           }}>
-            <h3 style={{ margin: '0 0 1rem', fontSize: '1.1rem', color: '#ef4444', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <span>⚠️</span> Knowledge Gaps Needing Attention ({knowledgeGaps.length})
+            <h3 style={{ margin: '0 0 1rem', fontSize: '1rem', fontWeight: 700, color: '#ef4444', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <IconAlertTriangle size={18} stroke={2} />
+              <span>Knowledge Gaps Needing Attention ({knowledgeGaps.length})</span>
             </h3>
             {knowledgeGaps.length === 0 ? (
-              <p style={{ color: 'var(--success)', fontSize: '0.9rem' }}>No active knowledge gaps detected!</p>
+              <p style={{ color: 'var(--success)', fontSize: '0.85rem' }}>No active knowledge gaps detected!</p>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 {knowledgeGaps.map((g, i) => (
                   <div key={i} style={{
-                    padding: '0.6rem 0.8rem',
+                    padding: '0.65rem 0.85rem',
                     borderRadius: 'var(--radius-sm)',
                     backgroundColor: 'var(--bg-main)',
+                    border: '1px solid var(--border-color)',
                     borderLeft: '3px solid #ef4444',
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center'
                   }}>
                     <div>
-                      <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-main)' }}>{g.conceptName}</div>
+                      <div style={{ fontWeight: 600, fontSize: '0.85rem', color: 'var(--text-main)' }}>{g.conceptName}</div>
                       <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{g.reason || 'Score below 75% threshold'}</div>
                     </div>
-                    <span style={{ fontWeight: 700, color: '#ef4444', fontSize: '0.9rem' }}>
+                    <span style={{ fontWeight: 700, color: '#ef4444', fontSize: '0.85rem', fontFamily: 'var(--font-mono, monospace)' }}>
                       {Math.round(g.masteryScore)}%
                     </span>
                   </div>
@@ -412,7 +453,9 @@ const AdminStudentDetail = () => {
           left: 0,
           right: 0,
           bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          backgroundColor: 'rgba(0, 0, 0, 0.65)',
+          backdropFilter: 'blur(4px)',
+          WebkitBackdropFilter: 'blur(4px)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -425,18 +468,20 @@ const AdminStudentDetail = () => {
             border: '1px solid var(--border-color)',
             maxWidth: '500px',
             width: '100%',
-            padding: '2rem',
+            padding: '1.75rem',
             boxShadow: 'var(--shadow-lg)'
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-              <h2 style={{ margin: 0, fontSize: '1.35rem', fontWeight: 800, color: 'var(--text-main)' }}>
-                Edit Student Profile
+              <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <IconEdit size={18} stroke={1.75} />
+                <span>Edit Student Profile</span>
               </h2>
               <button
                 onClick={() => setIsEditModalOpen(false)}
-                style={{ background: 'none', border: 'none', fontSize: '1.25rem', cursor: 'pointer', color: 'var(--text-muted)' }}
+                aria-label="Close modal"
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex', padding: '0.25rem' }}
               >
-                ✕
+                <IconX size={18} stroke={1.75} />
               </button>
             </div>
 
@@ -444,12 +489,17 @@ const AdminStudentDetail = () => {
               <div style={{
                 padding: '0.75rem',
                 borderRadius: 'var(--radius-sm)',
-                backgroundColor: '#fee2e2',
-                color: '#b91c1c',
+                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                color: 'var(--danger, #ef4444)',
+                border: '1px solid rgba(239, 68, 68, 0.25)',
                 fontSize: '0.85rem',
-                marginBottom: '1rem'
+                marginBottom: '1rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.4rem'
               }}>
-                ⚠️ {formError}
+                <IconAlertCircle size={15} stroke={2} />
+                <span>{formError}</span>
               </div>
             )}
 
@@ -466,11 +516,12 @@ const AdminStudentDetail = () => {
                   style={{
                     width: '100%',
                     padding: '0.65rem 0.85rem',
-                    borderRadius: 'var(--radius-md)',
+                    borderRadius: 'var(--radius-sm)',
                     border: '1px solid var(--border-color)',
                     backgroundColor: 'var(--bg-main)',
                     color: 'var(--text-main)',
                     fontSize: '0.9rem',
+                    outline: 'none',
                     boxSizing: 'border-box'
                   }}
                 />
@@ -488,11 +539,12 @@ const AdminStudentDetail = () => {
                   style={{
                     width: '100%',
                     padding: '0.65rem 0.85rem',
-                    borderRadius: 'var(--radius-md)',
+                    borderRadius: 'var(--radius-sm)',
                     border: '1px solid var(--border-color)',
                     backgroundColor: 'var(--bg-main)',
                     color: 'var(--text-main)',
                     fontSize: '0.9rem',
+                    outline: 'none',
                     boxSizing: 'border-box'
                   }}
                 />
@@ -509,11 +561,12 @@ const AdminStudentDetail = () => {
                     style={{
                       width: '100%',
                       padding: '0.65rem 0.85rem',
-                      borderRadius: 'var(--radius-md)',
+                      borderRadius: 'var(--radius-sm)',
                       border: '1px solid var(--border-color)',
                       backgroundColor: 'var(--bg-main)',
                       color: 'var(--text-main)',
                       fontSize: '0.9rem',
+                      outline: 'none',
                       boxSizing: 'border-box'
                     }}
                   >
@@ -533,11 +586,12 @@ const AdminStudentDetail = () => {
                     style={{
                       width: '100%',
                       padding: '0.65rem 0.85rem',
-                      borderRadius: 'var(--radius-md)',
+                      borderRadius: 'var(--radius-sm)',
                       border: '1px solid var(--border-color)',
                       backgroundColor: 'var(--bg-main)',
                       color: 'var(--text-main)',
                       fontSize: '0.9rem',
+                      outline: 'none',
                       boxSizing: 'border-box'
                     }}
                   >
@@ -553,29 +607,19 @@ const AdminStudentDetail = () => {
                 <button
                   type="button"
                   onClick={() => setIsEditModalOpen(false)}
-                  style={{
-                    padding: '0.65rem 1.25rem',
-                    borderRadius: 'var(--radius-md)',
-                    border: '1px solid var(--border-color)',
-                    backgroundColor: 'var(--bg-main)',
-                    color: 'var(--text-main)',
-                    fontSize: '0.9rem',
-                    cursor: 'pointer'
-                  }}
+                  className="btn btn-secondary"
+                  style={{ padding: '0.6rem 1.25rem', fontSize: '0.85rem' }}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={formSubmitting}
+                  className="btn btn-primary"
                   style={{
-                    padding: '0.65rem 1.5rem',
-                    borderRadius: 'var(--radius-md)',
-                    backgroundColor: 'var(--primary)',
-                    color: 'white',
-                    border: 'none',
-                    fontWeight: 700,
-                    fontSize: '0.9rem',
+                    padding: '0.6rem 1.5rem',
+                    fontWeight: 600,
+                    fontSize: '0.85rem',
                     cursor: formSubmitting ? 'not-allowed' : 'pointer'
                   }}
                 >

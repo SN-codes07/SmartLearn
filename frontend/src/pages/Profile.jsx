@@ -2,6 +2,15 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
+import {
+  IconBuildingBank,
+  IconLock,
+  IconNetwork,
+  IconBooks,
+  IconPencil,
+  IconArrowRight,
+  IconCheck
+} from '@tabler/icons-react';
 
 const Profile = () => {
   const { user } = useAuth();
@@ -63,7 +72,7 @@ const Profile = () => {
         justifyContent: 'space-between',
         flexWrap: 'wrap',
         gap: '1.5rem',
-        background: 'linear-gradient(to right, var(--card-bg), var(--bg-main))'
+        backgroundColor: 'var(--card-bg)'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
           <div style={{
@@ -71,13 +80,13 @@ const Profile = () => {
             height: '80px',
             borderRadius: '50%',
             backgroundColor: isStudent ? 'var(--primary)' : '#ef4444',
-            color: 'white',
+            color: isStudent ? 'var(--btn-text, #ffffff)' : 'white',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             fontSize: '2.25rem',
             fontWeight: 800,
-            boxShadow: '0 8px 16px rgba(0, 0, 0, 0.15)'
+            boxShadow: 'var(--shadow-sm)'
           }}>
             {activeUser?.name ? activeUser.name.charAt(0).toUpperCase() : 'U'}
           </div>
@@ -137,8 +146,9 @@ const Profile = () => {
           boxShadow: 'var(--shadow-sm)'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
-            <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <span>🏛️</span> Academic Information
+            <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+              <IconBuildingBank size={20} stroke={1.75} style={{ color: 'var(--primary)' }} />
+              <span>Academic Information</span>
             </h2>
             <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', backgroundColor: 'var(--bg-main)', padding: '0.25rem 0.5rem', borderRadius: '4px' }}>
               Official Record
@@ -187,18 +197,37 @@ const Profile = () => {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem' }}>
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>
-                  Department / Branch
+                  Engineering Branch (MU)
                 </label>
                 <div style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-main)', marginTop: '0.2rem' }}>
-                  {activeUser?.department || 'Information Technology'}
+                  {activeUser?.branch || activeUser?.department || 'Computer Engineering'}
                 </div>
               </div>
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>
-                  Academic Year
+                  Academic Level & Semester
                 </label>
                 <div style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-main)', marginTop: '0.2rem' }}>
-                  {activeUser?.academicYear ? `${activeUser.academicYear} (Undergraduate)` : 'Faculty / Staff'}
+                  {activeUser?.academicYear ? `${activeUser.academicYear} • Semester ${activeUser?.semester || 4}` : 'Faculty / Staff'}
+                </div>
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem' }}>
+              <div>
+                <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>
+                  University Affiliation
+                </label>
+                <div style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-main)', marginTop: '0.2rem' }}>
+                  University of Mumbai
+                </div>
+              </div>
+              <div>
+                <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>
+                  Curriculum Scheme
+                </label>
+                <div style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--primary)', marginTop: '0.2rem' }}>
+                  NEP-2020 / Rev-2019 'C' Scheme
                 </div>
               </div>
             </div>
@@ -213,7 +242,7 @@ const Profile = () => {
               gap: '0.75rem',
               alignItems: 'flex-start'
             }}>
-              <span style={{ fontSize: '1.2rem' }}>🔒</span>
+              <IconLock size={20} stroke={1.75} style={{ color: 'var(--text-muted)', flexShrink: 0, marginTop: '0.2rem' }} />
               <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
                 <strong style={{ color: 'var(--text-main)' }}>Managed Institution Record:</strong><br />
                 Academic identifiers and branch records are verified by the college registrar. Students cannot self-edit academic credentials. Contact your department administrator for corrections.
@@ -317,8 +346,11 @@ const Profile = () => {
                     transition: 'border-color 0.2s'
                   }}
                 >
-                  <span>🗺️ Visual Knowledge Map</span>
-                  <span>→</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                    <IconNetwork size={18} stroke={1.75} style={{ color: 'var(--primary)' }} />
+                    <span>Visual Knowledge Map</span>
+                  </div>
+                  <IconArrowRight size={16} stroke={1.75} style={{ color: 'var(--text-muted)' }} />
                 </Link>
 
                 <Link
@@ -338,8 +370,11 @@ const Profile = () => {
                     transition: 'border-color 0.2s'
                   }}
                 >
-                  <span>📚 Structured Curriculum</span>
-                  <span>→</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                    <IconBooks size={18} stroke={1.75} style={{ color: 'var(--primary)' }} />
+                    <span>Structured Curriculum</span>
+                  </div>
+                  <IconArrowRight size={16} stroke={1.75} style={{ color: 'var(--text-muted)' }} />
                 </Link>
 
                 <Link
@@ -359,8 +394,11 @@ const Profile = () => {
                     transition: 'border-color 0.2s'
                   }}
                 >
-                  <span>✍️ Take Diagnostic Assessment</span>
-                  <span>→</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                    <IconPencil size={18} stroke={1.75} style={{ color: 'var(--primary)' }} />
+                    <span>Take Diagnostic Assessment</span>
+                  </div>
+                  <IconArrowRight size={16} stroke={1.75} style={{ color: 'var(--text-muted)' }} />
                 </Link>
               </div>
             </div>

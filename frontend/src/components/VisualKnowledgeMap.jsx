@@ -1,5 +1,18 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { 
+  IconMap, 
+  IconTools, 
+  IconLayoutGrid, 
+  IconCircleCheck, 
+  IconAlertTriangle, 
+  IconTarget, 
+  IconBook, 
+  IconBrain, 
+  IconSparkles, 
+  IconArrowRight, 
+  IconCheck 
+} from '@tabler/icons-react';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 
@@ -19,7 +32,6 @@ const VisualKnowledgeMap = ({ selectedSubject = 'ALL', studentId }) => {
       .then(res => {
         setData(res.data);
         if (res.data.nodes?.length > 0) {
-          // Default selection to current target or first weak node
           const target = res.data.nodes.find(n => n.status === 'CURRENT TARGET') 
                       || res.data.nodes.find(n => n.status === 'PREREQUISITE GAP')
                       || res.data.nodes[0];
@@ -37,7 +49,7 @@ const VisualKnowledgeMap = ({ selectedSubject = 'ALL', studentId }) => {
     return (
       <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
         <div style={{ width: '40px', height: '40px', border: '3px solid var(--border-color)', borderTopColor: 'var(--primary)', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto 1rem' }}></div>
-        Building Visual Knowledge Graph from live student mastery data...
+        Building visual knowledge graph from live student mastery data...
       </div>
     );
   }
@@ -56,60 +68,54 @@ const VisualKnowledgeMap = ({ selectedSubject = 'ALL', studentId }) => {
     switch (status) {
       case 'MASTERED':
         return {
-          bg: '#ecfdf5',
-          border: '#10b981',
-          text: '#065f46',
-          badgeBg: '#10b981',
+          bg: 'var(--success-bg)',
+          border: 'var(--success)',
+          text: 'var(--success-text)',
+          badgeBg: 'var(--success)',
           badgeText: '#ffffff',
-          icon: '✓',
-          label: 'MASTERED (≥75%)'
+          label: 'Mastered (≥75%)'
         };
       case 'CURRENT TARGET':
         return {
-          bg: '#eef2ff',
-          border: '#6366f1',
-          text: '#312e81',
-          badgeBg: '#4f46e5',
+          bg: 'var(--primary-light)',
+          border: 'var(--primary)',
+          text: 'var(--primary)',
+          badgeBg: 'var(--primary)',
           badgeText: '#ffffff',
-          icon: '🎯',
-          label: 'CURRENT TARGET'
+          label: 'Current target'
         };
       case 'PREREQUISITE GAP':
         return {
-          bg: '#fffbeb',
-          border: '#f59e0b',
-          text: '#92400e',
-          badgeBg: '#d97706',
+          bg: 'var(--warning-bg)',
+          border: 'var(--warning)',
+          text: 'var(--warning-text)',
+          badgeBg: 'var(--warning)',
           badgeText: '#ffffff',
-          icon: '⚠️',
-          label: 'PREREQUISITE GAP'
+          label: 'Prerequisite gap'
         };
       case 'WEAK':
         return {
-          bg: '#fef2f2',
-          border: '#ef4444',
-          text: '#991b1b',
-          badgeBg: '#dc2626',
+          bg: 'var(--danger-bg)',
+          border: 'var(--danger)',
+          text: 'var(--danger-text)',
+          badgeBg: 'var(--danger)',
           badgeText: '#ffffff',
-          icon: '❌',
-          label: 'WEAK (<75%)'
+          label: 'Weak (<75%)'
         };
       default: // NOT ATTEMPTED
         return {
-          bg: '#f8fafc',
-          border: '#cbd5e1',
-          text: '#475569',
-          badgeBg: '#94a3b8',
+          bg: 'var(--bg-color)',
+          border: 'var(--border-color)',
+          text: 'var(--text-muted)',
+          badgeBg: 'var(--text-muted)',
           badgeText: '#ffffff',
-          icon: '○',
-          label: 'NOT ATTEMPTED'
+          label: 'Not attempted'
         };
     }
   };
 
   // Group nodes by prerequisite chains for GRAPH view
   const nodesWithPrereqs = filteredNodes.filter(n => n.prerequisiteIds && n.prerequisiteIds.length > 0);
-  const rootNodes = filteredNodes.filter(n => !n.prerequisiteIds || n.prerequisiteIds.length === 0);
 
   return (
     <div className="card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
@@ -117,31 +123,35 @@ const VisualKnowledgeMap = ({ selectedSubject = 'ALL', studentId }) => {
       {/* Header & Controls */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
-          <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.25rem' }}>
-            <span>🗺️</span> Visual Knowledge Map
+          <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.2rem', fontWeight: 700 }}>
+            <IconMap size={22} stroke={1.75} style={{ color: 'var(--primary)' }} /> Visual knowledge map
           </h3>
-          <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-            Real-time concept prerequisite network driven strictly by student database performance (75% threshold)
+          <p style={{ margin: '0.2rem 0 0 0', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+            Real-time concept prerequisite network driven strictly by student database performance (75% threshold standard)
           </p>
         </div>
 
         {/* View Mode Toggle */}
-        <div style={{ display: 'flex', gap: '0.5rem', backgroundColor: '#f1f5f9', padding: '0.25rem', borderRadius: 'var(--radius-md)' }}>
+        <div style={{ display: 'flex', gap: '0.35rem', backgroundColor: 'var(--bg-color)', padding: '0.25rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}>
           <button
             onClick={() => setViewMode('GRAPH')}
             style={{
               padding: '0.35rem 0.75rem',
               borderRadius: 'var(--radius-sm)',
               border: 'none',
-              backgroundColor: viewMode === 'GRAPH' ? 'white' : 'transparent',
+              backgroundColor: viewMode === 'GRAPH' ? 'var(--card-bg)' : 'transparent',
               color: viewMode === 'GRAPH' ? 'var(--primary)' : 'var(--text-muted)',
               fontWeight: viewMode === 'GRAPH' ? '700' : '500',
               cursor: 'pointer',
               fontSize: '0.8rem',
-              boxShadow: viewMode === 'GRAPH' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'
+              boxShadow: viewMode === 'GRAPH' ? 'var(--shadow-sm)' : 'none',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.35rem'
             }}
           >
-            🌿 Prerequisite Tree Flow
+            <IconTools size={14} stroke={1.75} />
+            Prerequisite tree flow
           </button>
           <button
             onClick={() => setViewMode('GRID')}
@@ -149,42 +159,46 @@ const VisualKnowledgeMap = ({ selectedSubject = 'ALL', studentId }) => {
               padding: '0.35rem 0.75rem',
               borderRadius: 'var(--radius-sm)',
               border: 'none',
-              backgroundColor: viewMode === 'GRID' ? 'white' : 'transparent',
+              backgroundColor: viewMode === 'GRID' ? 'var(--card-bg)' : 'transparent',
               color: viewMode === 'GRID' ? 'var(--primary)' : 'var(--text-muted)',
               fontWeight: viewMode === 'GRID' ? '700' : '500',
               cursor: 'pointer',
               fontSize: '0.8rem',
-              boxShadow: viewMode === 'GRID' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'
+              boxShadow: viewMode === 'GRID' ? 'var(--shadow-sm)' : 'none',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.35rem'
             }}
           >
-            ▦ All Concepts Grid
+            <IconLayoutGrid size={14} stroke={1.75} />
+            All concepts grid
           </button>
         </div>
       </div>
 
       {/* Legend */}
-      <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', fontSize: '0.75rem', padding: '0.75rem', backgroundColor: '#f8fafc', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)' }}>
-        <span style={{ fontWeight: '700', color: 'var(--text-main)', marginRight: '0.5rem' }}>Status Standards:</span>
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', color: '#065f46', fontWeight: '600' }}>
-          <span style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#10b981', display: 'inline-block' }}></span> MASTERED (≥75%)
+      <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', fontSize: '0.75rem', padding: '0.65rem 0.85rem', backgroundColor: 'var(--bg-color)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)', alignItems: 'center' }}>
+        <span style={{ fontWeight: '700', color: 'var(--text-main)', marginRight: '0.25rem' }}>Status standards:</span>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', color: 'var(--success-text)', fontWeight: '600' }}>
+          <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'var(--success)' }}></span> Mastered (≥75%)
         </span>
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', color: '#312e81', fontWeight: '600' }}>
-          <span style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#4f46e5', display: 'inline-block', boxShadow: '0 0 6px #6366f1' }}></span> CURRENT TARGET
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', color: 'var(--primary)', fontWeight: '600' }}>
+          <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'var(--primary)', boxShadow: '0 0 5px var(--primary)' }}></span> Current target
         </span>
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', color: '#92400e', fontWeight: '600' }}>
-          <span style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#f59e0b', display: 'inline-block' }}></span> PREREQUISITE GAP
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', color: 'var(--warning-text)', fontWeight: '600' }}>
+          <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'var(--warning)' }}></span> Prerequisite gap
         </span>
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', color: '#991b1b', fontWeight: '600' }}>
-          <span style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#ef4444', display: 'inline-block' }}></span> WEAK (&lt;75%)
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', color: 'var(--danger-text)', fontWeight: '600' }}>
+          <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'var(--danger)' }}></span> Weak (&lt;75%)
         </span>
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', color: '#475569', fontWeight: '600' }}>
-          <span style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#94a3b8', display: 'inline-block' }}></span> NOT ATTEMPTED
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', color: 'var(--text-muted)', fontWeight: '600' }}>
+          <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'var(--text-muted)' }}></span> Not attempted
         </span>
       </div>
 
       {/* Filter Tabs & Search */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
-        <div style={{ display: 'flex', gap: '0.4rem', overflowX: 'auto', paddingBottom: '0.25rem', maxWidth: '75%' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', width: '100%', maxWidth: '100%', minWidth: 0 }}>
+        <div style={{ display: 'flex', gap: '0.4rem', overflowX: 'auto', paddingBottom: '0.25rem', width: '100%', maxWidth: '100%', minWidth: 0 }} className="hide-scrollbar">
           {subjects.map(s => (
             <button
               key={s}
@@ -193,7 +207,7 @@ const VisualKnowledgeMap = ({ selectedSubject = 'ALL', studentId }) => {
                 padding: '0.35rem 0.75rem',
                 borderRadius: '2rem',
                 border: activeFilter === s ? '1px solid var(--primary)' : '1px solid var(--border-color)',
-                backgroundColor: activeFilter === s ? 'var(--primary)' : '#ffffff',
+                backgroundColor: activeFilter === s ? 'var(--primary)' : 'var(--card-bg)',
                 color: activeFilter === s ? 'white' : 'var(--text-main)',
                 fontSize: '0.8rem',
                 fontWeight: activeFilter === s ? '600' : '500',
@@ -208,24 +222,29 @@ const VisualKnowledgeMap = ({ selectedSubject = 'ALL', studentId }) => {
 
         <input
           type="text"
-          placeholder="🔍 Search concept..."
+          placeholder="Search concepts..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           style={{
-            padding: '0.35rem 0.75rem',
+            padding: '0.4rem 0.85rem',
             borderRadius: 'var(--radius-sm)',
             border: '1px solid var(--border-color)',
-            fontSize: '0.85rem',
-            width: '200px'
+            backgroundColor: 'var(--card-bg)',
+            color: 'var(--text-main)',
+            fontSize: '0.82rem',
+            maxWidth: '240px',
+            width: '100%',
+            outline: 'none',
+            boxSizing: 'border-box'
           }}
         />
       </div>
 
-      {/* VIEW 1: PREREQUISITE TREE FLOW */}
+      {/* VIEW 1: PREREQUISITE GRAPH TREE VIEW */}
       {viewMode === 'GRAPH' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', maxHeight: '520px', overflowY: 'auto', padding: '0.75rem', backgroundColor: '#fcfcfd', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', maxHeight: '520px', overflowY: 'auto', padding: '0.5rem' }}>
           {nodesWithPrereqs.length === 0 ? (
-            <p style={{ textAlign: 'center', color: 'var(--text-muted)', margin: '2rem 0' }}>No multi-step prerequisite chains found for this subject filter.</p>
+            <p style={{ textAlign: 'center', color: 'var(--text-muted)', margin: '2rem 0', fontSize: '0.88rem' }}>No multi-step prerequisite chains found for this subject filter.</p>
           ) : (
             nodesWithPrereqs.map(child => {
               const childConf = getStatusConfig(child.status);
@@ -234,15 +253,15 @@ const VisualKnowledgeMap = ({ selectedSubject = 'ALL', studentId }) => {
               return (
                 <div key={child.id} style={{
                   padding: '1.25rem',
-                  backgroundColor: '#ffffff',
+                  backgroundColor: 'var(--card-bg)',
                   border: isChildSelected ? '2px solid var(--primary)' : '1px solid var(--border-color)',
                   borderRadius: 'var(--radius-md)',
-                  boxShadow: isChildSelected ? '0 4px 12px rgba(99,102,241,0.15)' : '0 1px 3px rgba(0,0,0,0.04)'
+                  boxShadow: isChildSelected ? 'var(--shadow-md)' : 'var(--shadow-sm)'
                 }}>
                   {/* Subject & Chapter tag */}
                   <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.75rem', display: 'flex', justifyContent: 'space-between' }}>
                     <span>{child.subject} • {child.chapter}</span>
-                    <span style={{ fontStyle: 'italic' }}>Prerequisite Dependency Chain</span>
+                    <span style={{ fontStyle: 'italic' }}>Prerequisite dependency chain</span>
                   </div>
 
                   {/* Flowchart Diagram: Parent Prerequisite -> Target Concept */}
@@ -261,7 +280,7 @@ const VisualKnowledgeMap = ({ selectedSubject = 'ALL', studentId }) => {
                             onClick={() => setSelectedNode(parent)}
                             style={{
                               padding: '0.6rem 1rem',
-                              backgroundColor: isParentSelected ? '#eff6ff' : parentConf.bg,
+                              backgroundColor: isParentSelected ? 'var(--primary-light)' : parentConf.bg,
                               border: `2px solid ${isParentSelected ? 'var(--primary)' : parentConf.border}`,
                               borderRadius: 'var(--radius-md)',
                               cursor: 'pointer',
@@ -272,22 +291,23 @@ const VisualKnowledgeMap = ({ selectedSubject = 'ALL', studentId }) => {
                               textAlign: 'center'
                             }}
                           >
-                            <span style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--text-muted)' }}>
+                            <span style={{ fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--text-muted)', fontWeight: 600 }}>
                               Prerequisite Foundation
                             </span>
-                            <strong style={{ fontSize: '0.9rem', color: parentConf.text }}>
+                            <strong style={{ fontSize: '0.88rem', color: parentConf.text }}>
                               {parent.name}
                             </strong>
                             <span style={{
                               fontSize: '0.7rem',
                               fontWeight: '700',
+                              fontFamily: 'JetBrains Mono, monospace',
                               padding: '0.15rem 0.5rem',
                               borderRadius: '1rem',
                               backgroundColor: parentConf.badgeBg,
                               color: parentConf.badgeText,
                               margin: '0.25rem auto 0'
                             }}>
-                              {parentConf.icon} {parent.mastery > 0 ? `${parent.mastery.toFixed(0)}%` : parentConf.label}
+                              {parent.mastery > 0 ? `${parent.mastery.toFixed(0)}%` : parentConf.label}
                             </span>
                           </div>
                         );
@@ -295,49 +315,43 @@ const VisualKnowledgeMap = ({ selectedSubject = 'ALL', studentId }) => {
                     </div>
 
                     {/* Downward Arrow */}
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', color: child.status === 'PREREQUISITE_GAP' ? '#f59e0b' : 'var(--primary)', fontWeight: 'bold' }}>
-                      <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                        ↓ Required to unlock
-                      </span>
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <line x1="12" y1="5" x2="12" y2="19"></line>
-                        <polyline points="19 12 12 19 5 12"></polyline>
-                      </svg>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', color: child.status === 'PREREQUISITE_GAP' ? 'var(--warning)' : 'var(--primary)', fontWeight: 'bold' }}>
+                      <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '-2px', color: 'var(--text-muted)' }}>Required for</span>
+                      <span style={{ fontSize: '1.2rem', lineHeight: '1' }}>↓</span>
                     </div>
 
-                    {/* Target Concept Node */}
+                    {/* Child / Target Node */}
                     <div
                       onClick={() => setSelectedNode(child)}
                       style={{
-                        padding: '0.75rem 1.25rem',
-                        backgroundColor: isChildSelected ? '#eff6ff' : childConf.bg,
+                        padding: '0.75rem 1.5rem',
+                        backgroundColor: isChildSelected ? 'var(--primary-light)' : childConf.bg,
                         border: `2px solid ${isChildSelected ? 'var(--primary)' : childConf.border}`,
                         borderRadius: 'var(--radius-md)',
                         cursor: 'pointer',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '0.25rem',
-                        minWidth: '220px',
                         textAlign: 'center',
-                        boxShadow: child.status === 'CURRENT TARGET' ? '0 0 12px rgba(99,102,241,0.3)' : 'none'
+                        minWidth: '220px',
+                        boxShadow: child.status === 'CURRENT TARGET' ? '0 0 12px var(--primary-light)' : 'none'
                       }}
                     >
-                      <span style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--text-muted)' }}>
+                      <span style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--text-muted)', fontWeight: 600 }}>
                         Target Engineering Concept
                       </span>
-                      <strong style={{ fontSize: '1rem', color: childConf.text }}>
+                      <div style={{ fontWeight: 'bold', fontSize: '0.95rem', color: childConf.text, marginTop: '0.2rem' }}>
                         {child.name}
-                      </strong>
+                      </div>
                       <span style={{
-                        fontSize: '0.75rem',
+                        display: 'inline-block',
+                        fontSize: '0.7rem',
                         fontWeight: '700',
-                        padding: '0.2rem 0.6rem',
+                        fontFamily: 'JetBrains Mono, monospace',
+                        padding: '0.15rem 0.5rem',
                         borderRadius: '1rem',
                         backgroundColor: childConf.badgeBg,
                         color: childConf.badgeText,
                         margin: '0.25rem auto 0'
                       }}>
-                        {childConf.icon} {child.mastery > 0 ? `${child.mastery.toFixed(0)}% Mastery` : childConf.label}
+                        {child.mastery > 0 ? `${child.mastery.toFixed(0)}% Mastery` : childConf.label}
                       </span>
                     </div>
                   </div>
@@ -361,24 +375,25 @@ const VisualKnowledgeMap = ({ selectedSubject = 'ALL', studentId }) => {
                 onClick={() => setSelectedNode(node)}
                 style={{
                   padding: '1rem',
-                  backgroundColor: isSelected ? '#eff6ff' : conf.bg,
+                  backgroundColor: isSelected ? 'var(--primary-light)' : conf.bg,
                   border: `2px solid ${isSelected ? 'var(--primary)' : conf.border}`,
                   borderRadius: 'var(--radius-md)',
                   cursor: 'pointer',
-                  transition: 'all 0.2s',
+                  transition: 'all 0.15s ease',
                   display: 'flex',
                   flexDirection: 'column',
                   gap: '0.5rem',
-                  boxShadow: node.status === 'CURRENT TARGET' ? '0 0 10px rgba(99,102,241,0.3)' : (isSelected ? '0 4px 12px rgba(99,102,241,0.2)' : 'none')
+                  boxShadow: node.status === 'CURRENT TARGET' ? '0 0 10px var(--primary-light)' : (isSelected ? 'var(--shadow-md)' : 'none')
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <div style={{ fontWeight: '600', fontSize: '0.95rem', color: conf.text }}>
+                  <div style={{ fontWeight: '600', fontSize: '0.92rem', color: conf.text }}>
                     {node.name}
                   </div>
                   <span style={{ 
                     fontSize: '0.7rem', 
                     fontWeight: '700', 
+                    fontFamily: 'JetBrains Mono, monospace',
                     padding: '0.2rem 0.5rem', 
                     borderRadius: '1rem', 
                     backgroundColor: conf.badgeBg, 
@@ -408,8 +423,8 @@ const VisualKnowledgeMap = ({ selectedSubject = 'ALL', studentId }) => {
       {selectedNode && (
         <div style={{
           padding: '1.25rem 1.5rem',
-          backgroundColor: '#f8fafc',
-          border: '2px solid var(--border-color)',
+          backgroundColor: 'var(--bg-color)',
+          border: '1px solid var(--border-color)',
           borderRadius: 'var(--radius-md)',
           display: 'flex',
           justifyContent: 'space-between',
@@ -419,55 +434,70 @@ const VisualKnowledgeMap = ({ selectedSubject = 'ALL', studentId }) => {
         }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-              <h4 style={{ margin: 0, fontSize: '1.2rem', color: 'var(--text-main)' }}>{selectedNode.name}</h4>
+              <h4 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-main)' }}>{selectedNode.name}</h4>
               {(() => {
                 const conf = getStatusConfig(selectedNode.status);
                 return (
                   <span style={{
-                    fontSize: '0.75rem',
+                    fontSize: '0.72rem',
                     fontWeight: '700',
-                    padding: '0.25rem 0.65rem',
+                    fontFamily: 'JetBrains Mono, monospace',
+                    padding: '0.2rem 0.6rem',
                     borderRadius: '1rem',
                     backgroundColor: conf.badgeBg,
                     color: conf.badgeText
                   }}>
-                    {conf.icon} {selectedNode.mastery > 0 ? `${selectedNode.mastery.toFixed(0)}% Mastery` : conf.label}
+                    {selectedNode.mastery > 0 ? `${selectedNode.mastery.toFixed(0)}% Mastery` : conf.label}
                   </span>
                 );
               })()}
             </div>
 
-            <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+            <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
               Subject: <strong>{selectedNode.subject}</strong> | Chapter: <strong>{selectedNode.chapter}</strong>
             </p>
 
             {selectedNode.prerequisiteNames && selectedNode.prerequisiteNames.length > 0 && (
-              <p style={{ margin: '0.35rem 0 0 0', fontSize: '0.8rem', color: '#92400e' }}>
-                ⚠️ <strong>Requires Prerequisites:</strong> {selectedNode.prerequisiteNames.join(', ')}
+              <p style={{ margin: '0.35rem 0 0 0', fontSize: '0.8rem', color: 'var(--warning-text)', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                <IconAlertTriangle size={15} stroke={2} />
+                <span><strong>Requires prerequisites:</strong> {selectedNode.prerequisiteNames.join(', ')}</span>
               </p>
             )}
 
             {selectedNode.dependentNames && selectedNode.dependentNames.length > 0 && (
-              <p style={{ margin: '0.2rem 0 0 0', fontSize: '0.8rem', color: '#065f46' }}>
-                🚀 <strong>Unlocks Downstream Topics:</strong> {selectedNode.dependentNames.join(', ')}
+              <p style={{ margin: '0.2rem 0 0 0', fontSize: '0.8rem', color: 'var(--success-text)', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                <IconArrowRight size={15} stroke={2} />
+                <span><strong>Unlocks downstream topics:</strong> {selectedNode.dependentNames.join(', ')}</span>
               </p>
             )}
           </div>
 
           {/* Action Buttons */}
           <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-            <Link to={`/learning/${selectedNode.id}`} className="btn" style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}>
-              📖 Start Learning
+            <Link to={`/learning/${selectedNode.id}`} className="btn" style={{ padding: '0.45rem 0.85rem', fontSize: '0.82rem' }}>
+              <IconBook size={15} stroke={1.75} /> Start learning
             </Link>
-            <Link to={`/practice/${selectedNode.id}`} className="btn btn-secondary" style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}>
-              🎯 Practice Now
+            <Link to={`/practice/${selectedNode.id}`} className="btn btn-secondary" style={{ padding: '0.45rem 0.85rem', fontSize: '0.82rem' }}>
+              <IconTarget size={15} stroke={1.75} /> Practice
             </Link>
-            <Link to={`/reassessment/${selectedNode.id}`} className="btn btn-success" style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}>
-              📝 Reassess (≥75%)
+            <Link to={`/reassessment/${selectedNode.id}`} className="btn btn-success" style={{ padding: '0.45rem 0.85rem', fontSize: '0.82rem' }}>
+              <IconCircleCheck size={15} stroke={1.75} /> Reassess (≥75%)
             </Link>
-            <Link to={`/adaptive-quiz/${selectedNode.id}`} className="btn btn-outline" style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}>
-              ⚡ Adaptive Quiz
+            <Link to={`/adaptive-quiz/${selectedNode.id}`} className="btn btn-outline" style={{ padding: '0.45rem 0.85rem', fontSize: '0.82rem' }}>
+              <IconBrain size={15} stroke={1.75} /> Adaptive quiz
             </Link>
+            <button 
+              onClick={() => window.dispatchEvent(new CustomEvent('open-ai-assistant', {
+                detail: {
+                  conceptId: selectedNode.id,
+                  prompt: `Can you explain the concept "${selectedNode.name}" and help me understand its core principles?`
+                }
+              }))}
+              className="btn btn-secondary" 
+              style={{ padding: '0.45rem 0.85rem', fontSize: '0.82rem' }}
+            >
+              <IconSparkles size={15} stroke={1.75} style={{ color: 'var(--primary)' }} /> Ask AI tutor
+            </button>
           </div>
         </div>
       )}

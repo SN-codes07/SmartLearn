@@ -1,5 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { 
+  IconAlertTriangle, 
+  IconArrowLeft, 
+  IconArrowRight, 
+  IconCircleCheck 
+} from '@tabler/icons-react';
 import api from '../services/api';
 
 function Assessment() {
@@ -67,19 +73,21 @@ function Assessment() {
   };
 
   if (loading) return (
-    <div style={{ textAlign: 'center', padding: '5rem' }}>
-      <div style={{ width: '50px', height: '50px', border: '4px solid var(--border-color)', borderTopColor: 'var(--primary)', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto 1.5rem' }}></div>
-      <h3 style={{ color: 'var(--text-muted)' }}>Loading assessment...</h3>
+    <div style={{ textAlign: 'center', padding: '5rem 1rem' }}>
+      <div style={{ width: '42px', height: '42px', border: '3px solid var(--border-color)', borderTopColor: 'var(--primary)', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto 1.5rem' }}></div>
+      <h3 style={{ color: 'var(--text-muted)', fontSize: '0.95rem', fontWeight: 500 }}>Loading assessment...</h3>
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
   
   if (questions.length === 0) return (
     <div className="empty-state" style={{ marginTop: '3rem' }}>
-      <div className="empty-state-icon">⚠️</div>
-      <h2>No Questions Found</h2>
+      <div className="empty-state-icon" style={{ display: 'flex', justifyContent: 'center' }}>
+        <IconAlertTriangle size={36} stroke={1.75} style={{ color: 'var(--warning)' }} />
+      </div>
+      <h2>No questions found</h2>
       <p>Make sure backend data is initialized and available.</p>
-      <button className="btn" onClick={() => navigate('/')}>Return to Dashboard</button>
+      <button className="btn btn-secondary" onClick={() => navigate('/')}>Return to Dashboard</button>
     </div>
   );
 
@@ -88,24 +96,50 @@ function Assessment() {
   const isLast = currentIndex === questions.length - 1;
 
   return (
-    <div className="assessment" style={{ maxWidth: '800px', margin: '0 auto' }}>
-      <div className="page-header" style={{ alignItems: 'center' }}>
-        <h1>{type === 'DIAGNOSTIC' ? 'Diagnostic Assessment' : 'Assessment'}</h1>
-        <span className="badge badge-primary" style={{ padding: '0.5rem 1rem' }}>
+    <div className="assessment" style={{ maxWidth: '820px', margin: '0 auto', padding: '0.5rem 0' }}>
+      <div className="page-header" style={{ alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '1.25rem' }}>
+        <div>
+          <h1 style={{ fontSize: '1.75rem', fontWeight: 700, margin: '0 0 0.35rem', color: 'var(--text-main)' }}>
+            {type === 'DIAGNOSTIC' ? 'Diagnostic assessment' : 'Curriculum assessment'}
+          </h1>
+          <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.88rem' }}>
+            Answer each question to benchmark your knowledge profile and uncover prerequisites.
+          </p>
+        </div>
+        <span className="badge badge-primary" style={{ fontFamily: 'var(--font-mono, monospace)', padding: '0.4rem 0.85rem', fontSize: '0.8rem', letterSpacing: '0.02em' }}>
           Question {currentIndex + 1} of {questions.length}
         </span>
       </div>
       
-      <div className="progress-wrapper" style={{ marginBottom: '2rem', height: '10px' }}>
+      <div className="progress-wrapper" style={{ marginBottom: '1.75rem', height: '8px' }}>
         <div className="progress-fill" style={{ width: `${progressPercent}%`, backgroundColor: 'var(--primary)' }}></div>
       </div>
       
-      <div className="card" style={{ padding: '2.5rem' }}>
-        <h2 style={{ fontSize: '1.4rem', lineHeight: '1.5', marginBottom: '2rem', color: 'var(--text-main)' }}>
+      <div className="card auth-card">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem' }}>
+          <span style={{ 
+            fontFamily: 'var(--font-mono, monospace)', 
+            fontSize: '0.78rem', 
+            fontWeight: 700, 
+            color: 'var(--primary)',
+            backgroundColor: 'var(--primary-light)',
+            padding: '0.2rem 0.55rem',
+            borderRadius: 'var(--radius-sm)'
+          }}>
+            Q{currentIndex + 1}
+          </span>
+          {currentQ.conceptName && (
+            <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+              Topic: <strong style={{ color: 'var(--text-main)', fontWeight: 600 }}>{currentQ.conceptName}</strong>
+            </span>
+          )}
+        </div>
+
+        <h2 style={{ fontSize: '1.25rem', lineHeight: '1.55', marginBottom: '1.75rem', color: 'var(--text-main)', fontWeight: 600 }}>
           {currentQ.text}
         </h2>
         
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           {['A', 'B', 'C', 'D'].map(opt => {
             const optionText = currentQ[`option${opt}`];
             const isSelected = answers[currentQ.id] === opt;
@@ -113,6 +147,7 @@ function Assessment() {
               <label 
                 key={opt} 
                 className={`radio-option ${isSelected ? 'selected' : ''}`}
+                style={{ margin: 0, padding: '0.9rem 1.1rem' }}
               >
                 <input 
                   type="radio" 
@@ -121,8 +156,15 @@ function Assessment() {
                   checked={isSelected}
                   onChange={() => handleOptionSelect(currentQ.id, opt)}
                 />
-                <span style={{ fontWeight: isSelected ? '600' : '500' }}>
-                  <span style={{ opacity: 0.6, marginRight: '0.5rem' }}>{opt}.</span> 
+                <span style={{ fontWeight: isSelected ? '600' : '400', color: 'var(--text-main)', fontSize: '0.92rem' }}>
+                  <span style={{ 
+                    fontFamily: 'var(--font-mono, monospace)', 
+                    fontWeight: 700, 
+                    marginRight: '0.5rem',
+                    color: isSelected ? 'var(--primary)' : 'var(--text-muted)'
+                  }}>
+                    {opt}.
+                  </span> 
                   {optionText}
                 </span>
               </label>
@@ -131,30 +173,36 @@ function Assessment() {
         </div>
       </div>
       
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '2rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1.75rem', gap: '1rem', flexWrap: 'wrap' }}>
         <button 
           className="btn btn-secondary" 
           onClick={() => setCurrentIndex(prev => Math.max(0, prev - 1))}
           disabled={currentIndex === 0 || submitting}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
         >
+          <IconArrowLeft size={16} stroke={2} />
           Previous
         </button>
         
         {!isLast ? (
           <button 
-            className="btn" 
+            className="btn btn-primary" 
             onClick={() => setCurrentIndex(prev => Math.min(questions.length - 1, prev + 1))}
             disabled={!answers[currentQ.id]}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
           >
-            Next Question
+            Next question
+            <IconArrowRight size={16} stroke={2} />
           </button>
         ) : (
           <button 
             className="btn btn-success" 
             onClick={handleSubmit}
             disabled={submitting || Object.keys(answers).length < questions.length}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
           >
-            {submitting ? 'Submitting...' : 'Submit Assessment'}
+            <IconCircleCheck size={18} stroke={2} />
+            {submitting ? 'Submitting...' : 'Submit assessment'}
           </button>
         )}
       </div>

@@ -2,6 +2,73 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
+import {
+  IconAlertTriangle,
+  IconWorld,
+  IconBulb,
+  IconSparkles,
+  IconBolt,
+  IconFolder,
+  IconFileText,
+  IconArrowLeft,
+  IconBook
+} from '@tabler/icons-react';
+
+// Splits multi-line string on both actual newlines and escaped newlines
+const parseLines = (text) => {
+  if (!text) return [];
+  return text.split(/\r?\n|\\n/).map(s => s.trim()).filter(Boolean);
+};
+
+// Formats inline tokens (*italic*, **bold**, `code`)
+const renderFormattedText = (str) => {
+  if (!str) return '';
+  const parts = str.split(/(`[^`]+`|\*\*[^*]+\*\*|\*[^*]+\*)/g);
+  return parts.map((part, pIdx) => {
+    if (part.startsWith('`') && part.endsWith('`')) {
+      return <code key={pIdx}>{part.slice(1, -1)}</code>;
+    }
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return <strong key={pIdx} style={{ color: 'var(--text-main)', fontWeight: '700' }}>{part.slice(2, -2)}</strong>;
+    }
+    if (part.startsWith('*') && part.endsWith('*')) {
+      return <em key={pIdx}>{part.slice(1, -1)}</em>;
+    }
+    return part;
+  });
+};
+
+// Renders multi-paragraph explanation cleanly without raw markdown headers/bullets
+function FormattedParagraphs({ text }) {
+  if (!text) return null;
+  const lines = parseLines(text);
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
+      {lines.map((line, idx) => {
+        if (line.startsWith('### ') || line.startsWith('## ') || line.startsWith('# ')) {
+          return (
+            <h4 key={idx} style={{ color: 'var(--primary)', margin: '0.6rem 0 0.2rem 0', fontSize: '1.05rem', fontWeight: '700' }}>
+              {renderFormattedText(line.replace(/^#+\s*/, ''))}
+            </h4>
+          );
+        }
+        if (line.startsWith('- ') || line.startsWith('* ')) {
+          return (
+            <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', color: 'var(--text-main)', lineHeight: '1.7' }}>
+              <span style={{ color: 'var(--primary)', fontWeight: 'bold' }}>•</span>
+              <div>{renderFormattedText(line.replace(/^[-*]\s*/, ''))}</div>
+            </div>
+          );
+        }
+        return (
+          <p key={idx} style={{ margin: 0, color: 'var(--text-main)', lineHeight: '1.75', fontSize: '1rem' }}>
+            {renderFormattedText(line)}
+          </p>
+        );
+      })}
+    </div>
+  );
+}
 
 function Learning() {
   const { conceptId } = useParams();
@@ -31,11 +98,11 @@ function Learning() {
     </div>
   );
   if (!resource) return (
-    <div className="empty-state" style={{ marginTop: '3rem' }}>
-      <div className="empty-state-icon">⚠️</div>
+    <div className="empty-state" style={{ marginTop: '3rem', textAlign: 'center' }}>
+      <IconAlertTriangle size={36} stroke={1.75} style={{ color: 'var(--warning)', margin: '0 auto 1rem' }} />
       <h2>Module Not Found</h2>
       <p>We could not locate this learning resource.</p>
-      <Link to="/" className="btn" style={{ marginTop: '1rem' }}>Return to Dashboard</Link>
+      <Link to="/" className="btn" style={{ marginTop: '1rem', display: 'inline-flex' }}>Return to Dashboard</Link>
     </div>
   );
 
@@ -77,84 +144,108 @@ function Learning() {
           {/* Detailed Explanation */}
           {resource.detailedExplanation && (
             <div style={{ marginBottom: '2.5rem' }}>
-              <h4 style={{ color: 'var(--text-main)', fontSize: '1rem', marginBottom: '0.75rem' }}>Detailed Theory</h4>
-              <p style={{ color: 'var(--text-muted)', lineHeight: '1.7' }}>{resource.detailedExplanation}</p>
+              <h4 style={{ color: 'var(--text-main)', fontSize: '1.05rem', marginBottom: '0.75rem', fontWeight: '700' }}>Detailed Theory</h4>
+              <FormattedParagraphs text={resource.detailedExplanation} />
             </div>
           )}
 
           {/* Key Points & Mistakes Grid */}
           <div className="grid-2" style={{ marginBottom: '2.5rem' }}>
             {resource.keyPoints && (
-              <div style={{ padding: '1.5rem', backgroundColor: '#f8fafc', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}>
-                <h4 style={{ color: 'var(--primary)', fontSize: '0.9rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+              <div style={{ padding: '1.5rem', backgroundColor: 'var(--bg-color)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}>
+                <h4 style={{ color: 'var(--primary)', fontSize: '0.95rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: '700' }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
                   Key Points
                 </h4>
-                <ul style={{ paddingLeft: '1.2rem', color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: '1.6' }}>
-                  {resource.keyPoints.split('\\n').map((pt, i) => <li key={i}>{pt}</li>)}
+                <ul style={{ paddingLeft: '1.2rem', color: 'var(--text-main)', fontSize: '0.92rem', lineHeight: '1.7', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                  {parseLines(resource.keyPoints).map((pt, i) => (
+                    <li key={i}>{renderFormattedText(pt.replace(/^\d+\.\s*/, ''))}</li>
+                  ))}
                 </ul>
               </div>
             )}
             
             {resource.commonMistakes && (
-              <div style={{ padding: '1.5rem', backgroundColor: 'var(--danger-bg)', borderRadius: 'var(--radius-md)' }}>
-                <h4 style={{ color: 'var(--danger-text)', fontSize: '0.9rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                  Common Mistakes
+              <div style={{ padding: '1.5rem', backgroundColor: 'var(--danger-bg)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}>
+                <h4 style={{ color: 'var(--danger-text)', fontSize: '0.95rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: '700' }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                  Common Pitfalls & Mistakes
                 </h4>
-                <ul style={{ paddingLeft: '1.2rem', color: 'var(--danger-text)', fontSize: '0.9rem', lineHeight: '1.6' }}>
-                  {resource.commonMistakes.split('\\n').map((pt, i) => <li key={i}>{pt.replace('-', '')}</li>)}
+                <ul style={{ paddingLeft: '1.2rem', color: 'var(--danger-text)', fontSize: '0.92rem', lineHeight: '1.7', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                  {parseLines(resource.commonMistakes).map((pt, i) => (
+                    <li key={i}>{renderFormattedText(pt.replace(/^[-*]\s*/, ''))}</li>
+                  ))}
                 </ul>
               </div>
             )}
           </div>
 
-          {/* Syntax & Examples */}
+          {/* Syntax & Code Structure */}
           {resource.syntaxOrStructure && (
             <div style={{ marginBottom: '2.5rem' }}>
-              <h4 style={{ color: 'var(--text-main)', fontSize: '1rem', marginBottom: '0.75rem' }}>Syntax / Structure</h4>
-              <pre style={{ display: 'block', padding: '1.25rem', background: '#1e293b', color: '#e2e8f0', borderRadius: 'var(--radius-sm)', fontSize: '0.95rem', fontFamily: 'monospace', overflowX: 'auto', lineHeight: '1.5' }}>
-                {resource.syntaxOrStructure.replace(/\\n/g, '\n')}
+              <h4 style={{ color: 'var(--text-main)', fontSize: '1.05rem', marginBottom: '0.75rem', fontWeight: '700' }}>Syntax / Code Structure</h4>
+              <pre style={{ display: 'block', padding: '1.25rem', overflowX: 'auto' }}>
+                <code>{resource.syntaxOrStructure.replace(/\\n/g, '\n')}</code>
               </pre>
             </div>
           )}
 
+          {/* Real World Application */}
+          {resource.realWorldExample && (
+            <div style={{ marginBottom: '2.5rem', padding: '1.5rem', backgroundColor: 'var(--bg-main)', borderLeft: '4px solid var(--primary)', borderRadius: '0 var(--radius-md) var(--radius-md) 0' }}>
+              <h4 style={{ color: 'var(--primary)', fontSize: '0.95rem', marginBottom: '0.6rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: '700' }}>
+                <IconWorld size={18} stroke={1.75} />
+                <span>Real-World Application</span>
+              </h4>
+              <p style={{ margin: 0, color: 'var(--text-main)', fontSize: '0.95rem', lineHeight: '1.75' }}>
+                {renderFormattedText(resource.realWorldExample)}
+              </p>
+            </div>
+          )}
+
+          {/* Worked Example */}
           {resource.workedExample && (
-            <div style={{ marginBottom: '2.5rem', padding: '1.5rem', backgroundColor: '#f1f5f9', borderLeft: '4px solid var(--primary)', borderRadius: '0 var(--radius-md) var(--radius-md) 0' }}>
-              <h4 style={{ color: 'var(--text-main)', fontSize: '0.9rem', marginBottom: '0.75rem' }}>Worked Example</h4>
-              <div style={{ color: 'var(--text-muted)', fontSize: '0.95rem', lineHeight: '1.7' }}>
-                {resource.workedExample.split('\\n').map((line, i) => <div key={i}>{line}</div>)}
+            <div style={{ marginBottom: '2.5rem', padding: '1.5rem', backgroundColor: 'var(--bg-main)', borderLeft: '4px solid var(--success)', borderRadius: '0 var(--radius-md) var(--radius-md) 0' }}>
+              <h4 style={{ color: 'var(--text-main)', fontSize: '0.95rem', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: '700' }}>
+                <IconBulb size={18} stroke={1.75} style={{ color: 'var(--success)' }} />
+                <span>Worked Example</span>
+              </h4>
+              <div style={{ color: 'var(--text-main)', fontSize: '0.95rem', lineHeight: '1.75', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                {parseLines(resource.workedExample).map((line, i) => (
+                  <div key={i}>{renderFormattedText(line)}</div>
+                ))}
               </div>
             </div>
           )}
 
           {/* Exam Points */}
           {resource.examPoints && (
-            <div style={{ marginBottom: '2.5rem', padding: '1.5rem', backgroundColor: '#fcf8e3', border: '1px solid #faebcc', borderRadius: 'var(--radius-md)' }}>
-              <h4 style={{ color: '#8a6d3b', fontSize: '1rem', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <div style={{ marginBottom: '2.5rem', padding: '1.5rem', backgroundColor: 'var(--warning-bg)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)' }}>
+              <h4 style={{ color: 'var(--warning-text)', fontSize: '1rem', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: '700' }}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>
-                Important for Exams
+                Important for Exams & Interviews
               </h4>
-              <div style={{ color: '#8a6d3b', fontSize: '0.95rem', lineHeight: '1.6' }}>
-                {resource.examPoints.split('\\n').map((line, i) => <div key={i}>{line}</div>)}
+              <div style={{ color: 'var(--warning-text)', fontSize: '0.95rem', lineHeight: '1.7', display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                {parseLines(resource.examPoints).map((line, i) => (
+                  <div key={i}>{renderFormattedText(line)}</div>
+                ))}
               </div>
             </div>
           )}
 
-          
           {/* Ask AI Section */}
-          <div style={{ marginBottom: '2.5rem', padding: '1.5rem', backgroundColor: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 'var(--radius-md)' }}>
-            <h4 style={{ color: '#1e40af', fontSize: '1rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <span style={{ fontSize: '1.2rem' }}>✨</span>
-              Ask AI about this concept
+          <div style={{ marginBottom: '2.5rem', padding: '1.5rem', backgroundColor: 'var(--primary-light)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)' }}>
+            <h4 style={{ color: 'var(--primary)', fontSize: '1rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: '700' }}>
+              <IconSparkles size={18} stroke={1.75} />
+              <span>Ask AI Tutor about {resource.conceptName}</span>
             </h4>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
-              {["Explain this in simple terms", "Give me an example", "Test me", "What are common mistakes?", "Explain this for my exam"].map(prompt => (
+              {["Explain this in simple terms", "Give me a real-world example", "Test me on this topic", "What are common mistakes?", "Why is this important for exams?"].map(prompt => (
                 <button 
                   key={prompt}
                   className="btn btn-outline"
                   onClick={() => window.dispatchEvent(new CustomEvent('open-ai-assistant', { detail: { conceptId: Number(conceptId), prompt } }))}
-                  style={{ backgroundColor: 'white', color: '#1d4ed8', borderColor: '#93c5fd', fontSize: '0.85rem' }}
+                  style={{ backgroundColor: 'var(--card-bg)', color: 'var(--primary)', borderColor: 'var(--border-color)', fontSize: '0.85rem' }}
                 >
                   {prompt}
                 </button>
@@ -162,12 +253,16 @@ function Learning() {
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: '1rem', borderTop: '1px solid var(--border-color)', paddingTop: '2rem' }}>
-            <Link to={`/practice/${conceptId}`} className="btn" style={{ flex: 1 }}>
+          <div style={{ display: 'flex', gap: '1rem', borderTop: '1px solid var(--border-color)', paddingTop: '2rem', flexWrap: 'wrap' }}>
+            <Link to={`/practice/${conceptId}`} className="btn" style={{ flex: 1, minWidth: '160px', textAlign: 'center', justifyContent: 'center' }}>
               Practice This Concept
             </Link>
-            <Link to={`/reassessment/${conceptId}`} className="btn btn-outline" style={{ flex: 1 }}>
-              Take Re-assessment
+            <Link to={`/adaptive-quiz/${conceptId}`} className="btn btn-outline" style={{ flex: 1, minWidth: '160px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}>
+              <IconBolt size={16} stroke={1.75} />
+              <span>Adaptive Quiz</span>
+            </Link>
+            <Link to={`/reassessment/${conceptId}`} className="btn btn-secondary" style={{ flex: 1, minWidth: '160px', textAlign: 'center', justifyContent: 'center' }}>
+              Verify Mastery (≥75%)
             </Link>
           </div>
         </div>
@@ -250,7 +345,7 @@ function CurriculumSidebar({ currentConceptId }) {
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 padding: '0.65rem 0.75rem',
-                backgroundColor: isExpanded ? 'rgba(99, 102, 241, 0.1)' : 'transparent',
+                backgroundColor: isExpanded ? 'var(--primary-light)' : 'transparent',
                 border: isExpanded ? '1px solid var(--primary)' : '1px solid transparent',
                 borderRadius: 'var(--radius-sm)',
                 cursor: 'pointer',
@@ -262,7 +357,7 @@ function CurriculumSidebar({ currentConceptId }) {
               }}
               onMouseEnter={(e) => {
                 if (!isExpanded) {
-                  e.currentTarget.style.backgroundColor = 'var(--bg-main)';
+                  e.currentTarget.style.backgroundColor = 'var(--card-hover-bg, var(--bg-main))';
                   e.currentTarget.style.borderColor = 'var(--border-color)';
                 }
               }}
@@ -339,9 +434,13 @@ function CurriculumSidebar({ currentConceptId }) {
                         color: 'var(--text-muted)',
                         textTransform: 'uppercase',
                         letterSpacing: '0.5px',
-                        padding: '0.2rem 0.4rem'
+                        padding: '0.2rem 0.4rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.4rem'
                       }}>
-                        📁 {chapter.name}
+                        <IconFolder size={14} stroke={1.75} />
+                        <span>{chapter.name}</span>
                       </div>
 
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
@@ -357,7 +456,7 @@ function CurriculumSidebar({ currentConceptId }) {
                                 borderRadius: 'var(--radius-sm)',
                                 textDecoration: 'none',
                                 color: isCurrent ? 'var(--primary)' : 'var(--text-main)',
-                                backgroundColor: isCurrent ? 'rgba(99, 102, 241, 0.12)' : 'transparent',
+                                backgroundColor: isCurrent ? 'var(--primary-light)' : 'transparent',
                                 fontWeight: isCurrent ? '700' : '500',
                                 borderLeft: isCurrent ? '3px solid var(--primary)' : '3px solid transparent',
                                 display: 'flex',
@@ -366,13 +465,13 @@ function CurriculumSidebar({ currentConceptId }) {
                                 transition: 'all 0.15s ease'
                               }}
                               onMouseEnter={(e) => {
-                                if (!isCurrent) e.currentTarget.style.backgroundColor = 'var(--bg-main)';
+                                if (!isCurrent) e.currentTarget.style.backgroundColor = 'var(--card-hover-bg, var(--bg-main))';
                               }}
                               onMouseLeave={(e) => {
                                 if (!isCurrent) e.currentTarget.style.backgroundColor = 'transparent';
                               }}
                             >
-                              <span>📄</span>
+                              <IconFileText size={14} stroke={1.75} style={{ flexShrink: 0, opacity: isCurrent ? 1 : 0.7 }} />
                               <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                 {concept.name}
                               </span>

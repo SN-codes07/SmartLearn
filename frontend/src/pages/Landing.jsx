@@ -1,10 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { MacbookScrollDemo } from '../components/MacbookScrollDemo';
+import { IconBrain, IconTarget, IconChartBar, IconSparkles } from '@tabler/icons-react';
 
 export default function Landing() {
   return (
-    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '3rem' }}>
+    <div style={{ width: '100%', maxWidth: '100%', overflowX: 'clip', display: 'flex', flexDirection: 'column', gap: '3rem' }}>
       {/* Top Hero Banner */}
       <section style={{
         textAlign: 'center',
@@ -28,7 +29,8 @@ export default function Landing() {
           fontWeight: 600,
           border: '1px solid var(--border-color)'
         }}>
-          <span>⚡ Next-Generation Adaptive Learning</span>
+          <IconSparkles size={16} stroke={1.75} />
+          <span>Adaptive Intelligence for Engineers</span>
         </div>
 
         <h1 style={{
@@ -72,6 +74,7 @@ export default function Landing() {
       {/* MacbookScroll Hero Section */}
       <section style={{
         width: '100%',
+        maxWidth: '100%',
         position: 'relative',
         borderRadius: 'var(--radius-lg)',
         border: '1px solid var(--border-color)',
@@ -102,16 +105,15 @@ export default function Landing() {
             <div style={{
               width: '46px',
               height: '46px',
-              borderRadius: '12px',
+              borderRadius: 'var(--radius-sm)',
               backgroundColor: 'var(--primary-light)',
               color: 'var(--primary)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: '1.4rem',
               marginBottom: '1rem'
             }}>
-              🤖
+              <IconBrain size={24} stroke={1.75} />
             </div>
             <h3 style={{ fontSize: '1.15rem', marginBottom: '0.5rem', color: 'var(--text-main)' }}>
               Gemini AI Tutor
@@ -125,16 +127,15 @@ export default function Landing() {
             <div style={{
               width: '46px',
               height: '46px',
-              borderRadius: '12px',
+              borderRadius: 'var(--radius-sm)',
               backgroundColor: 'var(--primary-light)',
               color: 'var(--primary)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: '1.4rem',
               marginBottom: '1rem'
             }}>
-              🎯
+              <IconTarget size={24} stroke={1.75} />
             </div>
             <h3 style={{ fontSize: '1.15rem', marginBottom: '0.5rem', color: 'var(--text-main)' }}>
               Prerequisite Gap Analysis
@@ -148,16 +149,15 @@ export default function Landing() {
             <div style={{
               width: '46px',
               height: '46px',
-              borderRadius: '12px',
+              borderRadius: 'var(--radius-sm)',
               backgroundColor: 'var(--primary-light)',
               color: 'var(--primary)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: '1.4rem',
               marginBottom: '1rem'
             }}>
-              📈
+              <IconChartBar size={24} stroke={1.75} />
             </div>
             <h3 style={{ fontSize: '1.15rem', marginBottom: '0.5rem', color: 'var(--text-main)' }}>
               Adaptive Quizzing & Progress

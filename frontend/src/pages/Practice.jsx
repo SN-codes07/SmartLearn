@@ -3,6 +3,14 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import MistakeAnalysisCard from '../components/MistakeAnalysisCard';
+import {
+  IconTarget,
+  IconChecklist,
+  IconCheck,
+  IconX,
+  IconCircleCheck,
+  IconAlertTriangle
+} from '@tabler/icons-react';
 
 function Practice({ type }) {
   const { conceptId } = useParams();
@@ -115,8 +123,8 @@ function Practice({ type }) {
   );
 
   if (questions.length === 0) return (
-    <div className="empty-state" style={{ marginTop: '3rem' }}>
-      <div className="empty-state-icon">⚠️</div>
+    <div className="empty-state" style={{ marginTop: '3rem', textAlign: 'center' }}>
+      <IconAlertTriangle size={36} stroke={1.75} style={{ color: 'var(--warning)', margin: '0 auto 1rem' }} />
       <h2>No Questions Available</h2>
       <p>No questions found for this concept right now.</p>
       <button className="btn" onClick={() => navigate('/')}>Return to Dashboard</button>
@@ -133,7 +141,14 @@ function Practice({ type }) {
     <div className="practice-page" style={{ maxWidth: '820px', margin: '0 auto' }}>
       <div className="page-header" style={{ alignItems: 'center' }}>
         <div>
-          <h1>{type === 'PRACTICE' ? '🎯 Targeted Practice Mode' : '📝 Verification Re-assessment'}</h1>
+          <h1 style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+            {type === 'PRACTICE' ? (
+              <IconTarget size={24} stroke={1.75} style={{ color: 'var(--primary)' }} />
+            ) : (
+              <IconChecklist size={24} stroke={1.75} style={{ color: 'var(--primary)' }} />
+            )}
+            <span>{type === 'PRACTICE' ? 'Targeted Practice Mode' : 'Verification Re-assessment'}</span>
+          </h1>
           <p style={{ margin: 0, color: 'var(--text-muted)' }}>
             {type === 'PRACTICE' ? 'Instant misconception diagnosis and remedial feedback' : 'Requires ≥ 75% score to achieve MASTERED status'}
           </p>
@@ -172,9 +187,9 @@ function Practice({ type }) {
             let optionStyle = {};
             if (type === 'PRACTICE' && isRevealed) {
               if (currentQ.correctOption === opt) {
-                optionStyle = { backgroundColor: '#f0fdf4', borderColor: '#86efac', color: '#166534' };
+                optionStyle = { backgroundColor: 'var(--success-bg)', borderColor: 'var(--success)', color: 'var(--success-text)' };
               } else if (isSelected) {
-                optionStyle = { backgroundColor: '#fef2f2', borderColor: '#fca5a5', color: '#991b1b' };
+                optionStyle = { backgroundColor: 'var(--danger-bg)', borderColor: 'var(--danger)', color: 'var(--danger-text)' };
               } else {
                 optionStyle = { opacity: 0.5 };
               }
@@ -200,10 +215,10 @@ function Practice({ type }) {
                 </span>
                 
                 {type === 'PRACTICE' && isRevealed && currentQ.correctOption === opt && (
-                  <span style={{ marginLeft: 'auto' }}>✅</span>
+                  <IconCheck size={18} stroke={2.5} style={{ marginLeft: 'auto', color: 'var(--success)' }} />
                 )}
                 {type === 'PRACTICE' && isRevealed && isSelected && currentQ.correctOption !== opt && (
-                  <span style={{ marginLeft: 'auto' }}>❌</span>
+                  <IconX size={18} stroke={2.5} style={{ marginLeft: 'auto', color: 'var(--danger)' }} />
                 )}
               </label>
             );
@@ -212,11 +227,11 @@ function Practice({ type }) {
         
         {/* Correct feedback */}
         {type === 'PRACTICE' && isRevealed && isCorrect && (
-          <div style={{ marginTop: '2rem', padding: '1.25rem', backgroundColor: '#f0fdf4', borderRadius: 'var(--radius-md)', border: '1px solid #bbf7d0', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <span style={{ fontSize: '1.5rem' }}>🎉</span>
+          <div style={{ marginTop: '2rem', padding: '1.25rem', backgroundColor: 'var(--success-bg)', borderRadius: 'var(--radius-md)', border: '1px solid var(--success)', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <IconCircleCheck size={26} stroke={1.75} style={{ color: 'var(--success)', flexShrink: 0 }} />
             <div>
-              <h4 style={{ margin: '0 0 0.25rem 0', color: '#166534' }}>Correct! Great understanding.</h4>
-              <p style={{ margin: 0, fontSize: '0.85rem', color: '#15803d' }}>
+              <h4 style={{ margin: '0 0 0.25rem 0', color: 'var(--success-text)' }}>Correct! Great understanding.</h4>
+              <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-muted)' }}>
                 Your choice matches the foundational specification for this concept.
               </p>
             </div>

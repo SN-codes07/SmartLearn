@@ -1,14 +1,25 @@
 import { useState, useRef, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { 
+  IconSun, 
+  IconMoon, 
+  IconUser, 
+  IconDashboard, 
+  IconLogout, 
+  IconMenu2, 
+  IconX 
+} from '@tabler/icons-react';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -18,6 +29,23 @@ const Navbar = () => {
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Close menus on route change or Escape key
+  useEffect(() => {
+    setMobileMenuOpen(false);
+    setDropdownOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setMobileMenuOpen(false);
+        setDropdownOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
   const handleLogout = () => {
@@ -49,27 +77,28 @@ const Navbar = () => {
         )}
       </Link>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+      {/* Desktop Navigation Controls */}
+      <div className="navbar-desktop-nav" style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
         {/* Navigation links per role */}
         <div className="nav-links" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           {user ? (
             isAdmin ? (
               <>
-                <Link to="/admin">Admin Dashboard</Link>
-                <Link to="/learning-path">Curriculum</Link>
-                <Link to="/select-assessment">Assessments</Link>
+                <Link to="/admin" className={location.pathname === '/admin' ? 'active' : ''}>Admin Dashboard</Link>
+                <Link to="/learning-path" className={location.pathname === '/learning-path' ? 'active' : ''}>Curriculum</Link>
+                <Link to="/select-assessment" className={location.pathname === '/select-assessment' ? 'active' : ''}>Assessments</Link>
               </>
             ) : (
               <>
-                <Link to="/">Dashboard</Link>
-                <Link to="/learning-path">Learning Path</Link>
-                <Link to="/select-assessment">Assessments</Link>
+                <Link to="/" className={location.pathname === '/' ? 'active' : ''}>Dashboard</Link>
+                <Link to="/learning-path" className={location.pathname === '/learning-path' ? 'active' : ''}>Learning Path</Link>
+                <Link to="/select-assessment" className={location.pathname === '/select-assessment' ? 'active' : ''}>Assessments</Link>
               </>
             )
           ) : (
             <>
-              <Link to="/login">Login</Link>
-              <Link to="/signup">Sign Up</Link>
+              <Link to="/login" className={location.pathname === '/login' ? 'active' : ''}>Login</Link>
+              <Link to="/signup" className={location.pathname === '/signup' ? 'active' : ''}>Sign Up</Link>
             </>
           )}
         </div>
@@ -78,6 +107,7 @@ const Navbar = () => {
         <button
           onClick={toggleTheme}
           title={`Switch to ${theme === 'light' ? 'Dark' : 'Light'} Mode`}
+          aria-label={`Switch to ${theme === 'light' ? 'Dark' : 'Light'} Mode`}
           style={{
             background: 'none',
             border: '1px solid var(--border-color)',
@@ -92,7 +122,7 @@ const Navbar = () => {
             backgroundColor: 'var(--card-bg)'
           }}
         >
-          <span>{theme === 'light' ? '🌙' : '☀️'}</span>
+          {theme === 'light' ? <IconMoon size={15} stroke={1.75} /> : <IconSun size={15} stroke={1.75} />}
           <span style={{ fontSize: '0.75rem', fontWeight: '600' }}>
             {theme === 'light' ? 'Dark' : 'Light'}
           </span>
@@ -103,6 +133,8 @@ const Navbar = () => {
           <div ref={dropdownRef} style={{ position: 'relative' }}>
             <button
               onClick={() => setDropdownOpen(!dropdownOpen)}
+              aria-label="User profile menu"
+              aria-expanded={dropdownOpen}
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -121,7 +153,7 @@ const Navbar = () => {
                 height: '26px',
                 borderRadius: '50%',
                 backgroundColor: isAdmin ? '#ef4444' : 'var(--primary)',
-                color: 'white',
+                color: isAdmin ? 'white' : 'var(--btn-text)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -165,7 +197,7 @@ const Navbar = () => {
                       {user.role}
                     </span>
                     {user.studentId && (
-                      <span className="badge" style={{ backgroundColor: '#f1f5f9', color: '#475569' }}>
+                      <span className="badge" style={{ backgroundColor: 'var(--border-color)', color: 'var(--text-muted)' }}>
                         ID: {user.studentId}
                       </span>
                     )}
@@ -193,7 +225,7 @@ const Navbar = () => {
                       gap: '0.5rem'
                     }}
                   >
-                    <span>👤</span> View Profile
+                    <IconUser size={16} stroke={1.75} /> View Profile
                   </Link>
 
                   {isAdmin && (
@@ -211,7 +243,7 @@ const Navbar = () => {
                         gap: '0.5rem'
                       }}
                     >
-                      <span>📊</span> Admin Dashboard
+                      <IconDashboard size={16} stroke={1.75} /> Admin Dashboard
                     </Link>
                   )}
 
@@ -221,7 +253,7 @@ const Navbar = () => {
                       padding: '0.5rem',
                       border: 'none',
                       background: 'none',
-                      color: '#ef4444',
+                      color: 'var(--danger)',
                       fontSize: '0.85rem',
                       fontWeight: '600',
                       cursor: 'pointer',
@@ -232,7 +264,7 @@ const Navbar = () => {
                       textAlign: 'left'
                     }}
                   >
-                    <span>🚪</span> Sign Out
+                    <IconLogout size={16} stroke={1.75} /> Sign Out
                   </button>
                 </div>
               </div>
@@ -240,6 +272,290 @@ const Navbar = () => {
           </div>
         )}
       </div>
+
+      {/* Mobile Header Actions (Trigger + Theme) */}
+      <div className="navbar-mobile-actions" style={{ display: 'none', alignItems: 'center', gap: '0.5rem' }}>
+        <button
+          onClick={toggleTheme}
+          aria-label={`Switch to ${theme === 'light' ? 'Dark' : 'Light'} Mode`}
+          className="navbar-mobile-theme-btn"
+          style={{
+            background: 'none',
+            border: '1px solid var(--border-color)',
+            borderRadius: 'var(--radius-sm)',
+            padding: '0.45rem',
+            cursor: 'pointer',
+            color: 'var(--text-main)',
+            backgroundColor: 'var(--card-bg)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+        >
+          {theme === 'light' ? <IconMoon size={18} stroke={1.75} /> : <IconSun size={18} stroke={1.75} />}
+        </button>
+
+        <button
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+          aria-expanded={mobileMenuOpen}
+          className="navbar-mobile-toggle-btn"
+          style={{
+            background: 'none',
+            border: '1px solid var(--border-color)',
+            borderRadius: 'var(--radius-sm)',
+            padding: '0.45rem',
+            cursor: 'pointer',
+            color: 'var(--text-main)',
+            backgroundColor: 'var(--card-bg)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+        >
+          {mobileMenuOpen ? <IconX size={20} stroke={1.75} /> : <IconMenu2 size={20} stroke={1.75} />}
+        </button>
+      </div>
+
+      {/* Mobile Drawer Navigation Panel */}
+      {mobileMenuOpen && (
+        <div 
+          className="navbar-mobile-drawer"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Mobile Navigation Menu"
+        >
+          {/* User Status Card (when logged in) */}
+          {user && (
+            <div style={{
+              padding: '1rem',
+              backgroundColor: 'var(--bg-main)',
+              borderRadius: 'var(--radius-md)',
+              border: '1px solid var(--border-color)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.5rem'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <span style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '50%',
+                  backgroundColor: isAdmin ? '#ef4444' : 'var(--primary)',
+                  color: isAdmin ? 'white' : 'var(--btn-text)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '0.9rem',
+                  fontWeight: '700'
+                }}>
+                  {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                </span>
+                <div>
+                  <div style={{ fontWeight: '700', fontSize: '0.95rem', color: 'var(--text-main)' }}>
+                    {user.name}
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                    {user.email}
+                  </div>
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginTop: '0.25rem' }}>
+                <span className={`badge ${isAdmin ? 'badge-danger' : 'badge-primary'}`}>
+                  {user.role}
+                </span>
+                {user.studentId && (
+                  <span className="badge" style={{ backgroundColor: 'var(--card-bg)', color: 'var(--text-muted)' }}>
+                    ID: {user.studentId}
+                  </span>
+                )}
+                {user.department && (
+                  <span className="badge" style={{ backgroundColor: 'var(--card-bg)', color: 'var(--text-muted)' }}>
+                    {user.department}
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Navigation Links */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <span style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.5px' }}>
+              Navigation
+            </span>
+            {user ? (
+              isAdmin ? (
+                <>
+                  <Link 
+                    to="/admin" 
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="mobile-nav-link"
+                    style={{
+                      padding: '0.75rem 1rem',
+                      borderRadius: 'var(--radius-sm)',
+                      textDecoration: 'none',
+                      color: location.pathname === '/admin' ? 'var(--primary)' : 'var(--text-main)',
+                      backgroundColor: location.pathname === '/admin' ? 'var(--primary-light)' : 'var(--bg-main)',
+                      border: '1px solid var(--border-color)',
+                      fontWeight: 600,
+                      fontSize: '0.95rem'
+                    }}
+                  >
+                    Admin Dashboard
+                  </Link>
+                  <Link 
+                    to="/learning-path" 
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="mobile-nav-link"
+                    style={{
+                      padding: '0.75rem 1rem',
+                      borderRadius: 'var(--radius-sm)',
+                      textDecoration: 'none',
+                      color: location.pathname === '/learning-path' ? 'var(--primary)' : 'var(--text-main)',
+                      backgroundColor: location.pathname === '/learning-path' ? 'var(--primary-light)' : 'var(--bg-main)',
+                      border: '1px solid var(--border-color)',
+                      fontWeight: 600,
+                      fontSize: '0.95rem'
+                    }}
+                  >
+                    Curriculum
+                  </Link>
+                  <Link 
+                    to="/select-assessment" 
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="mobile-nav-link"
+                    style={{
+                      padding: '0.75rem 1rem',
+                      borderRadius: 'var(--radius-sm)',
+                      textDecoration: 'none',
+                      color: location.pathname === '/select-assessment' ? 'var(--primary)' : 'var(--text-main)',
+                      backgroundColor: location.pathname === '/select-assessment' ? 'var(--primary-light)' : 'var(--bg-main)',
+                      border: '1px solid var(--border-color)',
+                      fontWeight: 600,
+                      fontSize: '0.95rem'
+                    }}
+                  >
+                    Assessments
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link 
+                    to="/" 
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="mobile-nav-link"
+                    style={{
+                      padding: '0.75rem 1rem',
+                      borderRadius: 'var(--radius-sm)',
+                      textDecoration: 'none',
+                      color: location.pathname === '/' ? 'var(--primary)' : 'var(--text-main)',
+                      backgroundColor: location.pathname === '/' ? 'var(--primary-light)' : 'var(--bg-main)',
+                      border: '1px solid var(--border-color)',
+                      fontWeight: 600,
+                      fontSize: '0.95rem'
+                    }}
+                  >
+                    Dashboard
+                  </Link>
+                  <Link 
+                    to="/learning-path" 
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="mobile-nav-link"
+                    style={{
+                      padding: '0.75rem 1rem',
+                      borderRadius: 'var(--radius-sm)',
+                      textDecoration: 'none',
+                      color: location.pathname === '/learning-path' ? 'var(--primary)' : 'var(--text-main)',
+                      backgroundColor: location.pathname === '/learning-path' ? 'var(--primary-light)' : 'var(--bg-main)',
+                      border: '1px solid var(--border-color)',
+                      fontWeight: 600,
+                      fontSize: '0.95rem'
+                    }}
+                  >
+                    Learning Path
+                  </Link>
+                  <Link 
+                    to="/select-assessment" 
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="mobile-nav-link"
+                    style={{
+                      padding: '0.75rem 1rem',
+                      borderRadius: 'var(--radius-sm)',
+                      textDecoration: 'none',
+                      color: location.pathname === '/select-assessment' ? 'var(--primary)' : 'var(--text-main)',
+                      backgroundColor: location.pathname === '/select-assessment' ? 'var(--primary-light)' : 'var(--bg-main)',
+                      border: '1px solid var(--border-color)',
+                      fontWeight: 600,
+                      fontSize: '0.95rem'
+                    }}
+                  >
+                    Assessments
+                  </Link>
+                </>
+              )
+            ) : (
+              <>
+                <Link 
+                  to="/login" 
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="btn btn-secondary"
+                  style={{ width: '100%', justifyContent: 'center' }}
+                >
+                  Sign In
+                </Link>
+                <Link 
+                  to="/signup" 
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="btn"
+                  style={{ width: '100%', justifyContent: 'center' }}
+                >
+                  Get Started Free
+                </Link>
+              </>
+            )}
+          </div>
+
+          {/* User Account / Profile / Sign out */}
+          {user && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: 'auto', paddingTop: '1rem', borderTop: '1px solid var(--border-color)' }}>
+              <Link
+                to="/profile"
+                onClick={() => setMobileMenuOpen(false)}
+                style={{
+                  padding: '0.75rem 1rem',
+                  borderRadius: 'var(--radius-sm)',
+                  textDecoration: 'none',
+                  color: 'var(--text-main)',
+                  backgroundColor: 'var(--bg-main)',
+                  border: '1px solid var(--border-color)',
+                  fontWeight: 600,
+                  fontSize: '0.95rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}
+              >
+                <IconUser size={18} stroke={1.75} /> My Profile
+              </Link>
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  handleLogout();
+                }}
+                className="btn btn-secondary"
+                style={{
+                  width: '100%',
+                  justifyContent: 'center',
+                  color: 'var(--danger)',
+                  borderColor: 'var(--danger)'
+                }}
+              >
+                <IconLogout size={18} stroke={1.75} /> Sign Out
+              </button>
+            </div>
+          )}
+        </div>
+      )}
     </nav>
   );
 };

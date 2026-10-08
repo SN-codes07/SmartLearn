@@ -1,6 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import { 
+  IconSparkles, 
+  IconRefresh, 
+  IconCircleCheck, 
+  IconAlertTriangle, 
+  IconTarget, 
+  IconArrowRight 
+} from '@tabler/icons-react';
 
 const DailyFeedbackCard = ({ studentId = 1 }) => {
   const [feedback, setFeedback] = useState(null);
@@ -40,7 +48,7 @@ const DailyFeedbackCard = ({ studentId = 1 }) => {
         borderRadius: 'var(--radius-lg)',
         border: '1px solid var(--border-color)',
         padding: '1.5rem',
-        marginBottom: '2rem',
+        marginBottom: '1.5rem',
         boxShadow: 'var(--shadow-sm)'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
@@ -70,58 +78,57 @@ const DailyFeedbackCard = ({ studentId = 1 }) => {
   const nextStep = feedback.recommendedNextStep || feedback.nextAction;
 
   return (
-    <div style={{
+    <div className="card" style={{
       backgroundColor: 'var(--card-bg)',
       borderRadius: 'var(--radius-lg)',
       border: '1px solid var(--border-color)',
-      padding: '1.75rem',
-      marginBottom: '2rem',
+      padding: '1.5rem 1.75rem',
       boxShadow: 'var(--shadow-sm)',
       position: 'relative',
       overflow: 'hidden'
     }}>
-      {/* Decorative gradient bar on top */}
+      {/* Subtle top indicator bar */}
       <div style={{
         position: 'absolute',
         top: 0,
         left: 0,
         right: 0,
-        height: '4px',
-        background: 'linear-gradient(90deg, #6366f1, #8b5cf6, #ec4899)'
+        height: '3px',
+        backgroundColor: 'var(--primary)'
       }} />
 
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.2rem', flexWrap: 'wrap', gap: '0.75rem' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <div style={{
-            width: '40px',
-            height: '40px',
-            borderRadius: '10px',
-            background: 'linear-gradient(135deg, #6366f1 0%, #4338ca 100%)',
+            width: '38px',
+            height: '38px',
+            borderRadius: 'var(--radius-sm)',
+            backgroundColor: 'var(--primary-light)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: 'white',
-            fontSize: '1.25rem',
-            boxShadow: '0 4px 10px rgba(99, 102, 241, 0.3)'
+            color: 'var(--primary)',
+            border: '1px solid var(--border-color)'
           }}>
-            🤖
+            <IconSparkles size={20} stroke={1.75} />
           </div>
           <div>
-            <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              Daily Learning Summary
+            <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              Daily learning summary
               <span style={{
                 fontSize: '0.7rem',
                 padding: '0.15rem 0.5rem',
-                borderRadius: '1rem',
-                backgroundColor: isAi ? '#dbeafe' : '#f1f5f9',
-                color: isAi ? '#1d4ed8' : '#475569',
-                fontWeight: 600
+                borderRadius: 'var(--radius-full)',
+                backgroundColor: isAi ? 'var(--primary-light)' : 'var(--bg-main)',
+                color: isAi ? 'var(--primary)' : 'var(--text-muted)',
+                fontWeight: 600,
+                border: '1px solid var(--border-color)'
               }}>
-                {isAi ? '✨ AI Analysis' : '⚡ Smart Analytics'}
+                {isAi ? 'AI analysis' : 'Smart analytics'}
               </span>
             </h3>
-            <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+            <p style={{ margin: '0.15rem 0 0', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
               Feedback for {feedback.feedbackDate || 'Today'} • {feedback.studentName || 'Student'}
             </p>
           </div>
@@ -131,22 +138,15 @@ const DailyFeedbackCard = ({ studentId = 1 }) => {
           onClick={() => fetchFeedback(true)}
           disabled={refreshing}
           title="Refresh today's summary"
+          className="btn btn-secondary"
           style={{
-            background: 'none',
-            border: '1px solid var(--border-color)',
-            borderRadius: 'var(--radius-sm)',
             padding: '0.35rem 0.75rem',
             fontSize: '0.8rem',
             fontWeight: 600,
-            cursor: refreshing ? 'not-allowed' : 'pointer',
-            color: 'var(--text-muted)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.4rem',
-            backgroundColor: 'var(--bg-main)'
+            cursor: refreshing ? 'not-allowed' : 'pointer'
           }}
         >
-          <span>🔄</span>
+          <IconRefresh size={14} stroke={2} className={refreshing ? 'spin' : ''} />
           <span>{refreshing ? 'Updating...' : 'Refresh'}</span>
         </button>
       </div>
@@ -154,16 +154,17 @@ const DailyFeedbackCard = ({ studentId = 1 }) => {
       {/* Today's Progress */}
       {feedback.todaysProgress && (
         <div style={{
-          fontSize: '0.95rem',
+          fontSize: '0.92rem',
           lineHeight: 1.6,
           color: 'var(--text-main)',
           marginBottom: '1.25rem',
           padding: '0.85rem 1rem',
           borderRadius: 'var(--radius-md)',
           backgroundColor: 'var(--bg-main)',
-          borderLeft: '4px solid var(--primary)'
+          borderLeft: '3px solid var(--primary)'
         }}>
-          <strong>Today's Progress: </strong>{feedback.todaysProgress}
+          <strong style={{ color: 'var(--primary)' }}>Today's progress: </strong>
+          {feedback.todaysProgress}
         </div>
       )}
 
@@ -176,10 +177,11 @@ const DailyFeedbackCard = ({ studentId = 1 }) => {
           padding: '1rem',
           border: '1px solid var(--border-color)'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.6rem', color: '#16a34a', fontWeight: 700, fontSize: '0.85rem' }}>
-            <span>✅</span> WHAT IMPROVED
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginBottom: '0.5rem', color: 'var(--success)', fontWeight: 600, fontSize: '0.82rem', letterSpacing: '0.02em', textTransform: 'uppercase' }}>
+            <IconCircleCheck size={16} stroke={2} />
+            <span>What improved</span>
           </div>
-          <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--text-main)', lineHeight: 1.5 }}>
+          <p style={{ margin: 0, fontSize: '0.88rem', color: 'var(--text-main)', lineHeight: 1.55 }}>
             {whatImprovedText || 'Complete an assessment today to record improvements.'}
           </p>
         </div>
@@ -191,10 +193,11 @@ const DailyFeedbackCard = ({ studentId = 1 }) => {
           padding: '1rem',
           border: '1px solid var(--border-color)'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.6rem', color: '#d97706', fontWeight: 700, fontSize: '0.85rem' }}>
-            <span>⚠️</span> NEEDS ATTENTION
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginBottom: '0.5rem', color: 'var(--warning)', fontWeight: 600, fontSize: '0.82rem', letterSpacing: '0.02em', textTransform: 'uppercase' }}>
+            <IconAlertTriangle size={16} stroke={2} />
+            <span>Needs attention</span>
           </div>
-          <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--text-main)', lineHeight: 1.5 }}>
+          <p style={{ margin: 0, fontSize: '0.88rem', color: 'var(--text-main)', lineHeight: 1.55 }}>
             {needsAttentionText || 'No urgent knowledge gaps detected.'}
           </p>
         </div>
@@ -206,34 +209,32 @@ const DailyFeedbackCard = ({ studentId = 1 }) => {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: '0.85rem 1.25rem',
+          padding: '0.85rem 1.15rem',
           borderRadius: 'var(--radius-md)',
-          backgroundColor: 'rgba(99, 102, 241, 0.08)',
-          border: '1px solid rgba(99, 102, 241, 0.2)',
+          backgroundColor: 'var(--surface-secondary, var(--card-bg))',
+          border: '1px solid var(--border-color)',
           flexWrap: 'wrap',
           gap: '0.75rem',
-          marginBottom: feedback.encouragingSummary ? '1rem' : 0
+          marginBottom: feedback.encouragingSummary ? '0.75rem' : 0
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flex: 1 }}>
-            <span style={{ fontSize: '1.1rem' }}>🎯</span>
-            <div style={{ fontSize: '0.9rem', color: 'var(--text-main)' }}>
-              <strong>Recommended Action:</strong> {nextStep}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flex: 1, minWidth: '220px' }}>
+            <IconTarget size={18} stroke={1.75} style={{ color: 'var(--primary)' }} />
+            <div style={{ fontSize: '0.88rem', color: 'var(--text-main)' }}>
+              <strong>Recommended action:</strong> {nextStep}
             </div>
           </div>
           <button
             onClick={() => navigate('/learning-path')}
+            className="btn btn-primary"
             style={{
-              padding: '0.45rem 1rem',
+              padding: '0.45rem 0.9rem',
               borderRadius: 'var(--radius-sm)',
-              backgroundColor: 'var(--primary)',
-              color: 'white',
-              border: 'none',
-              fontWeight: 600,
-              fontSize: '0.85rem',
-              cursor: 'pointer'
+              fontSize: '0.82rem',
+              fontWeight: 600
             }}
           >
-            Start Action →
+            Start action
+            <IconArrowRight size={14} stroke={2} />
           </button>
         </div>
       )}
@@ -241,7 +242,7 @@ const DailyFeedbackCard = ({ studentId = 1 }) => {
       {/* Encouraging Summary */}
       {feedback.encouragingSummary && (
         <div style={{
-          fontSize: '0.85rem',
+          fontSize: '0.82rem',
           fontStyle: 'italic',
           color: 'var(--text-muted)',
           textAlign: 'center',
